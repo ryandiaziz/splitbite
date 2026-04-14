@@ -1,0 +1,8 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# https://www.playframework.com/documentation/latest/ScalaRouting
+
+GET     /                           controllers.HomeController.index()
+POST    /api/room/create            controllers.RoomController.createRoom()
+GET     /api/room/:id               controllers.RoomController.getRoom(id: String)
+GET     /api/room/:id/ws            controllers.WebSocketController.ws(id: String)
