@@ -94,16 +94,16 @@ export const Home: React.FC<{
                 <div className="flex-grow border-t border-slate-300/50"></div>
               </div>
               
-              <form onSubmit={handleJoin} className="flex gap-3">
+              <form onSubmit={handleJoin} className="flex flex-col sm:flex-row gap-3">
                 <input 
                   type="text" 
                   placeholder="Room ID" 
-                  className="flex-1 rounded-xl border border-white/40 bg-white/50 px-5 py-3 text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:outline-none transition-all duration-300"
+                  className="w-full sm:flex-1 rounded-xl border border-white/40 bg-white/50 px-5 py-3 text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:outline-none transition-all duration-300"
                   value={roomId}
                   onChange={(e) => setRoomId(e.target.value)}
                   required
                 />
-                <Button type="submit" variant="primary" disabled={isLoading || !roomId.trim() || localName.trim().length < 4}>
+                <Button type="submit" variant="primary" disabled={isLoading || !roomId.trim() || localName.trim().length < 4} className="w-full sm:w-auto">
                   Join
                 </Button>
               </form>

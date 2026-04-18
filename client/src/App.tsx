@@ -42,7 +42,12 @@ function App() {
 
   const handleJoinRoom = async (roomId: string) => {
     try {
-      const res = await fetch(`http://localhost:9000/api/room/${roomId}`);
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:9000';
+      const res = await fetch(`${apiUrl}/api/room/${roomId}`, {
+        headers: {
+          'ngrok-skip-browser-warning': 'true'
+        }
+      });
       if (!res.ok) throw new Error('Room not found');
       const data = await res.json();
       if (data.status === 'success') {
@@ -61,10 +66,12 @@ function App() {
   const handleCreateRoom = async (type: 'image' | 'structured') => {
     if (!sessionId) return;
     try {
-      const res = await fetch('http://localhost:9000/api/room/create', {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:9000';
+      const res = await fetch(`${apiUrl}/api/room/create`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true'
         },
         body: JSON.stringify({ hostId: sessionId, roomType: type })
       });

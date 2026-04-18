@@ -46,7 +46,8 @@ function compressImage(file: File): Promise<string> {
 }
 
 export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId, myName, onLeave }) => {
-  const { isConnected, sendMessage, lastMessage } = useWebSocket(`ws://localhost:9000/api/room/${roomId}/ws?session_id=${sessionId}`);
+  const wsUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:9000';
+  const { isConnected, sendMessage, lastMessage } = useWebSocket(`${wsUrl}/api/room/${roomId}/ws?session_id=${sessionId}`);
   
   const [newItem, setNewItem] = useState('');
   const [newPrice, setNewPrice] = useState('');
@@ -167,25 +168,27 @@ export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId,
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800">
       <header className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-bold text-indigo-600 tracking-tight">SplitBite</h1>
-            <span className="px-3 py-1 bg-slate-100 text-slate-600 font-mono text-sm rounded-md font-semibold border border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:h-16 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 sm:gap-4">
+            <h1 className="text-xl sm:text-2xl font-bold text-indigo-600 tracking-tight">SplitBite</h1>
+            <span className="px-2 py-0.5 bg-slate-100 text-slate-600 font-mono text-xs sm:text-sm rounded-md font-semibold border border-slate-200">
               #{roomId}
             </span>
-            {isHost && <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs font-bold rounded uppercase">Host</span>}
-            {isOrderLocked && (
-              <span className="px-2 py-1 bg-rose-100 text-rose-700 text-xs font-bold rounded uppercase animate-pulse">
-                🔒 Pesanan Ditutup
-              </span>
-            )}
+            <div className="flex gap-1.5">
+              {isHost && <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-[10px] sm:text-xs font-bold rounded uppercase">Host</span>}
+              {isOrderLocked && (
+                <span className="px-2 py-0.5 bg-rose-100 text-rose-700 text-[10px] sm:text-xs font-bold rounded uppercase animate-pulse">
+                  🔒 Pesanan Ditutup
+                </span>
+              )}
+            </div>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-4">
             <div className="flex items-center gap-2">
               <span className={`h-2.5 w-2.5 rounded-full ${isConnected ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`}></span>
-              <span className="text-sm font-medium text-slate-500 hidden sm:block">{isConnected ? 'Live Sync' : 'Reconnecting...'}</span>
+              <span className="text-xs sm:text-sm font-medium text-slate-500">{isConnected ? 'Live Sync' : 'Reconnecting...'}</span>
             </div>
-            <Button variant="secondary" size="sm" onClick={onLeave}>Leave</Button>
+            <Button variant="secondary" size="sm" onClick={onLeave} className="px-3 py-1">Leave</Button>
           </div>
         </div>
       </header>
@@ -284,18 +287,18 @@ export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId,
                   </h3>
                   <div className="space-y-3">
                     {participants.filter((p: any) => !p.isApproved && !p.isRejected).map((p: any) => (
-                      <div key={p.sessionId} className="flex items-center justify-between bg-white p-3 rounded-lg border border-indigo-100 shadow-sm">
+                      <div key={p.sessionId} className="flex flex-col xs:flex-row items-center justify-between bg-white p-3 rounded-lg border border-indigo-100 shadow-sm gap-3">
                         <span className="font-bold text-slate-700">{p.name}</span>
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 w-full xs:w-auto">
                           <button 
                             onClick={() => handleApprove(p.sessionId)}
-                            className="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-3 py-1.5 rounded-md transition-colors"
+                            className="flex-1 xs:flex-none bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-4 py-2 rounded-md transition-colors"
                           >
                             Approve
                           </button>
                           <button 
                             onClick={() => handleReject(p.sessionId)}
-                            className="bg-rose-100 hover:bg-rose-200 text-rose-600 text-xs font-bold px-3 py-1.5 rounded-md transition-colors"
+                            className="flex-1 xs:flex-none bg-rose-100 hover:bg-rose-200 text-rose-600 text-xs font-bold px-4 py-2 rounded-md transition-colors"
                           >
                             Reject
                           </button>
@@ -309,7 +312,7 @@ export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId,
               {/* Menu description input */}
               <div className="mb-5">
                 <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Catatan Menu</label>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <textarea
                     value={menuDescInput}
                     onChange={e => setMenuDescInput(e.target.value)}
@@ -317,9 +320,7 @@ export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId,
                     rows={2}
                     className="flex-1 rounded-lg border border-slate-300 px-4 py-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none resize-none"
                   />
-                  <div className="flex items-end">
-                    <Button variant="secondary" size="sm" onClick={handleMenuDescUpdate}>Update</Button>
-                  </div>
+                  <Button variant="secondary" size="sm" onClick={handleMenuDescUpdate} className="w-full sm:w-auto h-fit">Update</Button>
                 </div>
               </div>
 
@@ -335,18 +336,16 @@ export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId,
               {/* Billing */}
               <div className="mb-5">
                 <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Billing</label>
-                <div className="flex gap-4">
-                  <div className="flex-1">
-                    <label className="block text-xs text-slate-400 mb-1">Tax / Delivery</label>
+                <div className="flex flex-col sm:flex-row gap-4 items-end">
+                  <div className="w-full sm:flex-1">
+                    <label className="block text-[10px] text-slate-400 mb-1">Tax / Delivery</label>
                     <input type="number" value={taxInput} onChange={e => setTaxInput(e.target.value)} placeholder="e.g. 15000" className="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none" />
                   </div>
-                  <div className="flex-1">
-                    <label className="block text-xs text-slate-400 mb-1">Total Discount</label>
+                  <div className="w-full sm:flex-1">
+                    <label className="block text-[10px] text-slate-400 mb-1">Total Discount</label>
                     <input type="number" value={discountInput} onChange={e => setDiscountInput(e.target.value)} placeholder="e.g. 0" className="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none" />
                   </div>
-                  <div className="flex items-end">
-                    <Button variant="primary" size="sm" onClick={handleUpdateFees}>Apply</Button>
-                  </div>
+                  <Button variant="primary" size="sm" onClick={handleUpdateFees} className="w-full sm:w-auto">Apply</Button>
                 </div>
               </div>
 
