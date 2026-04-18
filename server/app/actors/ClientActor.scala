@@ -39,20 +39,66 @@ class ClientActor(roomId: String, sessionId: String, out: ActorRef, manager: Act
                 case Some("JOIN_PARTICIPANT") =>
                   val name = (data \ "name").asOpt[String].getOrElse("Guest")
                   if (!room.participants.exists(_.sessionId == sessionId)) {
-                    val p = Participant(java.util.UUID.randomUUID().toString.take(6), name, sessionId, "pending", None, List.empty)
+                    val isApproved = room.hostId == sessionId
+                    val p = Participant(java.util.UUID.randomUUID().toString.take(6), name, sessionId, "pending", isApproved, false, None, List.empty)
                     updatedRoom = room.copy(participants = room.participants :+ p)
                   }
 
-                case Some("ADD_ORDER") =>
-                  val itemName = (data \ "name").as[String]
-                  val price = (data \ "price").as[Double]
-                  val note = (data \ "note").asOpt[String].filter(_.trim.nonEmpty)
-                  val newOrder = Order(java.util.UUID.randomUUID().toString.take(8), sessionId, itemName, price, note)
+                case Some("APPROVE_PARTICIPANT") =>
+                  if (room.hostId == sessionId) {
+                    val targetSessionId = (data \ "targetSessionId").as[String]
+                    val pIndex = room.participants.indexWhere(_.sessionId == targetSessionId)
+                    if (pIndex >= 0) {
+                      updatedRoom = room.copy(
+                        participants = room.participants.updated(pIndex, room.participants(pIndex).copy(isApproved = true))
+                      )
+                    }
+                  }
 
-                  val pIndex = room.participants.indexWhere(_.sessionId == sessionId)
-                  if (pIndex >= 0) {
-                    val p = room.participants(pIndex)
-                    val updatedParticipants = room.participants.updated(pIndex, p.copy(orders = p.orders :+ newOrder))
+                case Some("REJECT_PARTICIPANT") =>
+                  if (room.hostId == sessionId) {
+                    val targetSessionId = (data \ "targetSessionId").as[String]
+                    val pIndex = room.participants.indexWhere(_.sessionId == targetSessionId)
+                    if (pIndex >= 0) {
+                      updatedRoom = room.copy(
+                        participants = room.participants.updated(pIndex, room.participants(pIndex).copy(isRejected = true))
+                      )
+                    }
+                  }
+
+                case Some("ADD_ORDER") =>
+                  val participant = room.participants.find(_.sessionId == sessionId)
+                  if (!room.isOrderLocked && participant.exists(_.isApproved)) {
+                    val itemName = (data \ "name").as[String]
+                    val price = (data \ "price").asOpt[Double].getOrElse(0.0)
+                    val note = (data \ "note").asOpt[String].filter(_.trim.nonEmpty)
+                    val newOrder = Order(java.util.UUID.randomUUID().toString.take(8), sessionId, itemName, price, note)
+
+                    val pIndex = room.participants.indexWhere(_.sessionId == sessionId)
+                    if (pIndex >= 0) {
+                      val p = room.participants(pIndex)
+                      val updatedParticipants = room.participants.updated(pIndex, p.copy(orders = p.orders :+ newOrder))
+                      updatedRoom = room.copy(participants = updatedParticipants)
+                    }
+                  }
+
+                case Some("UPDATE_ORDER") =>
+                  if (room.hostId == sessionId) {
+                    val orderId = (data \ "orderId").as[String]
+                    val newPrice = (data \ "price").asOpt[Double]
+                    val newName = (data \ "name").asOpt[String]
+
+                    val updatedParticipants = room.participants.map { p =>
+                      val oIndex = p.orders.indexWhere(_.id == orderId)
+                      if (oIndex >= 0) {
+                        val o = p.orders(oIndex)
+                        val updatedOrder = o.copy(
+                          price = newPrice.getOrElse(o.price),
+                          itemName = newName.getOrElse(o.itemName)
+                        )
+                        p.copy(orders = p.orders.updated(oIndex, updatedOrder))
+                      } else p
+                    }
                     updatedRoom = room.copy(participants = updatedParticipants)
                   }
 
@@ -81,6 +127,33 @@ class ClientActor(roomId: String, sessionId: String, out: ActorRef, manager: Act
                     val fees = (data \ "additionalFees").asOpt[Double].getOrElse(room.additionalFees)
                     val discount = (data \ "discount").asOpt[Double].getOrElse(room.discount)
                     updatedRoom = room.copy(additionalFees = fees, discount = discount)
+                  }
+
+                case Some("UPDATE_MENU") =>
+                  if (room.hostId == sessionId) {
+                    val menuImage = (data \ "menuImage").asOpt[String]
+                    val description = (data \ "description").asOpt[String]
+                    updatedRoom = room.copy(
+                      menuImageUrl = menuImage.orElse(room.menuImageUrl),
+                      menuDescription = description.orElse(room.menuDescription)
+                    )
+                  }
+
+                case Some("UPLOAD_HOST_RECEIPT") =>
+                  if (room.hostId == sessionId) {
+                    val receipt = (data \ "receipt").asOpt[String]
+                    updatedRoom = room.copy(hostReceiptUrl = receipt)
+                  }
+
+                case Some("TOGGLE_ORDER_LOCK") =>
+                  if (room.hostId == sessionId) {
+                    updatedRoom = room.copy(isOrderLocked = !room.isOrderLocked)
+                  }
+
+                case Some("CLOSE_ROOM") =>
+                  if (room.hostId == sessionId) {
+                    redisService.del(s"room:$roomId")
+                    manager ! RoomManagerActor.Broadcast(roomId, Json.obj("type" -> "ROOM_DELETED").toString())
                   }
 
                 case _ => // discard

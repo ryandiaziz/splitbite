@@ -3,12 +3,13 @@ package controllers
 import javax.inject._
 import play.api.mvc._
 import play.api.libs.json._
+import play.api.Configuration
 import services.RedisService
 import models._
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class RoomController @Inject()(val controllerComponents: ControllerComponents, redisService: RedisService)(implicit ec: ExecutionContext) extends BaseController {
+class RoomController @Inject()(val controllerComponents: ControllerComponents, redisService: RedisService, config: Configuration)(implicit ec: ExecutionContext) extends BaseController {
 
   import models.RoomFormats._
 
@@ -24,28 +25,40 @@ class RoomController @Inject()(val controllerComponents: ControllerComponents, r
 
         (hostIdOpt, roomTypeOpt) match {
           case (Some(hostId), Some(roomType)) =>
-            // Generate a random room ID
-            val roomId = java.util.UUID.randomUUID().toString.take(8)
-            
-            val newRoom = Room(
-              id = roomId,
-              hostId = hostId,
-              roomType = roomType,
-              menuImageUrl = None,
-              menuItems = List.empty,
-              participants = List.empty,
-              additionalFees = 0.0,
-              discount = 0.0
-            )
+            // Check room limit
+            val maxRooms = config.getOptional[Int]("splitbite.room.max_count").getOrElse(100)
+            if (redisService.countKeys("room:*") >= maxRooms) {
+              Status(429)(Json.obj("status" -> "error", "message" -> "Server room limit reached. Please try again later."))
+            } else {
+              // Generate a random room ID
+              val roomId = java.util.UUID.randomUUID().toString.take(8)
+              
+              val expiresAt = System.currentTimeMillis() + (redisService.defaultTtl * 1000)
+              
+              val newRoom = Room(
+                id = roomId,
+                hostId = hostId,
+                roomType = roomType,
+                menuImageUrl = None,
+                menuDescription = None,
+                hostReceiptUrl = None,
+                isOrderLocked = false,
+                menuItems = List.empty,
+                participants = List.empty,
+                additionalFees = 0.0,
+                discount = 0.0,
+                expiresAt = expiresAt
+              )
 
-            // Save to Redis
-            redisService.set(s"room:$roomId", Json.toJson(newRoom).toString())
+              // Save to Redis
+              redisService.set(s"room:$roomId", Json.toJson(newRoom).toString())
 
-            Ok(Json.obj(
-              "status" -> "success",
-              "roomId" -> roomId,
-              "room" -> Json.toJson(newRoom)
-            ))
+              Ok(Json.obj(
+                "status" -> "success",
+                "roomId" -> roomId,
+                "room" -> Json.toJson(newRoom)
+              ))
+            }
 
           case _ =>
             BadRequest(Json.obj("status" -> "error", "message" -> "Missing hostId or roomType"))

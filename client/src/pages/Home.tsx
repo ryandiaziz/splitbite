@@ -3,27 +3,47 @@ import { Button } from '../components/ui/Button';
 import { GlassCard } from '../components/ui/GlassCard';
 
 export const Home: React.FC<{ 
-  onJoinRoom: (id: string) => void, 
-  onCreateRoom: (type: 'image' | 'structured') => void,
+  onJoinRoom: (id: string) => Promise<boolean>, 
+  onCreateRoom: (type: 'image' | 'structured') => Promise<boolean>,
   myName: string,
   onSetName: (name: string) => void
 }> = ({ onJoinRoom, onCreateRoom, myName, onSetName }) => {
   const [roomId, setRoomId] = useState('');
   const [localName, setLocalName] = useState(myName);
   const [isLoading, setIsLoading] = useState(false);
+  const [invitedRoomId, setInvitedRoomId] = useState<string | null>(null);
 
-  const handleJoin = (e: React.FormEvent) => {
+  React.useEffect(() => {
+    const hash = window.location.hash;
+    if (hash.startsWith('#room/')) {
+      const id = hash.replace('#room/', '');
+      setRoomId(id);
+      setInvitedRoomId(id);
+    }
+  }, []);
+
+  const handleJoin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (roomId.trim()) {
+    const finalRoomId = roomId || invitedRoomId;
+    if (localName.trim() && finalRoomId) {
       setIsLoading(true);
-      // Simulate network
-      setTimeout(() => onJoinRoom(roomId), 600);
+      onSetName(localName.trim());
+      // Wait a bit for aesthetic delay
+      await new Promise(resolve => setTimeout(resolve, 600));
+      await onJoinRoom(finalRoomId);
+      setIsLoading(false);
     }
   };
 
-  const handleCreate = (type: 'image' | 'structured') => {
-    setIsLoading(true);
-    setTimeout(() => onCreateRoom(type), 600);
+  const handleCreate = async (type: 'image' | 'structured') => {
+    if (localName.trim()) {
+      setIsLoading(true);
+      onSetName(localName.trim());
+      // Wait a bit for aesthetic delay
+      await new Promise(resolve => setTimeout(resolve, 600));
+      await onCreateRoom(type);
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -38,9 +58,16 @@ export const Home: React.FC<{
             <h1 className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-pink-600 mb-4 drop-shadow-sm">
               SplitBite.
             </h1>
-            <p className="text-xl text-slate-600 mb-8 max-w-2xl mx-auto">
-              No logins. No downloads. Just create a temporary room, invite your friends, order food together, and we do the complex split bill math.
-            </p>
+            {invitedRoomId ? (
+              <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-xl mb-6 animate-fade-in">
+                <p className="text-indigo-800 font-semibold mb-1">You're invited to join room:</p>
+                <div className="text-2xl font-mono font-bold text-indigo-600 tracking-wider">#{invitedRoomId}</div>
+              </div>
+            ) : (
+              <p className="text-xl text-slate-600 mb-8 max-w-2xl mx-auto">
+                No logins. No downloads. Just create a temporary room, invite your friends, order food together, and we do the complex split bill math.
+              </p>
+            )}
           </div>
 
           <div className="mb-10 text-left bg-white/50 p-6 rounded-2xl shadow-sm border border-white/50">
@@ -50,34 +77,43 @@ export const Home: React.FC<{
               value={localName} 
               onChange={(e) => {
                 setLocalName(e.target.value);
-                onSetName(e.target.value);
               }}
               placeholder="e.g., Alex" 
               className="w-full p-3 border-2 border-indigo-200 rounded-xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 text-indigo-900 font-bold outline-none transition-all" 
+              minLength={4}
             />
+            {localName.trim().length > 0 && localName.trim().length < 4 && (
+              <p className="text-xs text-rose-500 font-bold mt-2 animate-pulse">Min. 4 characters required!</p>
+            )}
           </div>
 
-          {!localName.trim() ? (
-            <p className="text-indigo-900 font-medium animate-pulse">👆 Please enter your nickname above to continue!</p>
+          {!localName.trim() || localName.trim().length < 4 ? (
+            <p className="text-indigo-900 font-medium animate-pulse">👆 Please enter your nickname (min. 4 chars) to continue!</p>
           ) : (
             <>
               <div className="space-y-4 mb-8">
-                <Button 
-                  variant="primary" 
-                  className="w-full text-lg py-4 shadow-pink-500/20" 
-                  onClick={() => handleCreate('image')}
-                  isLoading={isLoading}
-                >
-                  Start Quick Menu (Image)
-                </Button>
-                <Button 
-                  variant="secondary" 
-                  className="w-full py-3"
-                  onClick={() => handleCreate('structured')}
-                  disabled={isLoading}
-                >
-                  Start Structured Menu (Text)
-                </Button>
+                {invitedRoomId ? (
+                   <Button 
+                    variant="primary" 
+                    className="w-full text-lg py-5 shadow-indigo-500/20" 
+                    onClick={handleJoin}
+                    isLoading={isLoading}
+                   >
+                    Join Room Now
+                   </Button>
+                ) : (
+                  <>
+                    <Button 
+                      variant="primary" 
+                      className="w-full text-lg py-4 shadow-pink-500/20" 
+                      onClick={() => handleCreate('image')}
+                      isLoading={isLoading}
+                      disabled={localName.trim().length < 4}
+                    >
+                      Start Quick Menu (Image)
+                    </Button>
+                  </>
+                )}
               </div>
 
               <div className="relative flex items-center py-4">
@@ -86,16 +122,16 @@ export const Home: React.FC<{
                 <div className="flex-grow border-t border-slate-300/50"></div>
               </div>
               
-              <form onSubmit={handleJoin} className="flex gap-3">
+              <form onSubmit={handleJoin} className="flex flex-col sm:flex-row gap-3">
                 <input 
                   type="text" 
                   placeholder="Room ID" 
-                  className="flex-1 rounded-xl border border-white/40 bg-white/50 px-5 py-3 text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:outline-none transition-all duration-300"
+                  className="w-full sm:flex-1 rounded-xl border border-white/40 bg-white/50 px-5 py-3 text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:outline-none transition-all duration-300"
                   value={roomId}
                   onChange={(e) => setRoomId(e.target.value)}
                   required
                 />
-                <Button type="submit" variant="primary" disabled={isLoading || !roomId.trim()}>
+                <Button type="submit" variant="primary" disabled={isLoading || !roomId.trim() || localName.trim().length < 4} className="w-full sm:w-auto">
                   Join
                 </Button>
               </form>

@@ -21,6 +21,8 @@ case class Participant(
   name: String,
   sessionId: String,
   paymentStatus: String, // "pending", "verifying", "paid"
+  isApproved: Boolean,
+  isRejected: Boolean,
   receiptImageUrl: Option[String],
   orders: List[Order]
 )
@@ -30,10 +32,14 @@ case class Room(
   hostId: String,
   roomType: String, // "image" or "structured"
   menuImageUrl: Option[String],
+  menuDescription: Option[String],
+  hostReceiptUrl: Option[String],
+  isOrderLocked: Boolean,
   menuItems: List[MenuItem],
   participants: List[Participant],
   additionalFees: Double,
-  discount: Double
+  discount: Double,
+  expiresAt: Long
 )
 
 object RoomFormats {

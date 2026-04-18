@@ -42,26 +42,31 @@ function App() {
 
   const handleJoinRoom = async (roomId: string) => {
     try {
-      const res = await fetch(`http://localhost:9000/api/room/${roomId}`);
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:9000';
+      const res = await fetch(`${apiUrl}/api/room/${roomId}`);
       if (!res.ok) throw new Error('Room not found');
       const data = await res.json();
       if (data.status === 'success') {
         setCurrentRoom(roomId);
         window.location.hash = `room/${roomId}`;
+        return true;
       } else {
         alert(data.message || 'Room not found');
         window.location.hash = '';
+        return false;
       }
     } catch (err) {
       alert('Failed to connect to server or room does not exist.');
       window.location.hash = '';
+      return false;
     }
   };
 
   const handleCreateRoom = async (type: 'image' | 'structured') => {
-    if (!sessionId) return;
+    if (!sessionId) return false;
     try {
-      const res = await fetch('http://localhost:9000/api/room/create', {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:9000';
+      const res = await fetch(`${apiUrl}/api/room/create`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -72,11 +77,14 @@ function App() {
       if (data.status === 'success' && data.roomId) {
         setCurrentRoom(data.roomId);
         window.location.hash = `room/${data.roomId}`;
+        return true;
       } else {
         alert(data.message || 'Failed to create room');
+        return false;
       }
     } catch (err) {
       alert('Failed to connect to server. Ensure Backend is running.');
+      return false;
     }
   };
 
