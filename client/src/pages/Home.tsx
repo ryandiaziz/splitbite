@@ -11,14 +11,25 @@ export const Home: React.FC<{
   const [roomId, setRoomId] = useState('');
   const [localName, setLocalName] = useState(myName);
   const [isLoading, setIsLoading] = useState(false);
+  const [invitedRoomId, setInvitedRoomId] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    const hash = window.location.hash;
+    if (hash.startsWith('#room/')) {
+      const id = hash.replace('#room/', '');
+      setRoomId(id);
+      setInvitedRoomId(id);
+    }
+  }, []);
 
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (localName.trim() && roomId.trim()) {
+    const finalRoomId = roomId || invitedRoomId;
+    if (localName.trim() && finalRoomId) {
       setIsLoading(true);
       onSetName(localName.trim());
-      // Simulate network
-      setTimeout(() => onJoinRoom(roomId), 600);
+      // Wait a bit for App state to sync if needed, though onJoinRoom is direct
+      setTimeout(() => onJoinRoom(finalRoomId), 600);
     }
   };
 
@@ -42,9 +53,16 @@ export const Home: React.FC<{
             <h1 className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-pink-600 mb-4 drop-shadow-sm">
               SplitBite.
             </h1>
-            <p className="text-xl text-slate-600 mb-8 max-w-2xl mx-auto">
-              No logins. No downloads. Just create a temporary room, invite your friends, order food together, and we do the complex split bill math.
-            </p>
+            {invitedRoomId ? (
+              <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-xl mb-6 animate-fade-in">
+                <p className="text-indigo-800 font-semibold mb-1">You're invited to join room:</p>
+                <div className="text-2xl font-mono font-bold text-indigo-600 tracking-wider">#{invitedRoomId}</div>
+              </div>
+            ) : (
+              <p className="text-xl text-slate-600 mb-8 max-w-2xl mx-auto">
+                No logins. No downloads. Just create a temporary room, invite your friends, order food together, and we do the complex split bill math.
+              </p>
+            )}
           </div>
 
           <div className="mb-10 text-left bg-white/50 p-6 rounded-2xl shadow-sm border border-white/50">
@@ -69,23 +87,36 @@ export const Home: React.FC<{
           ) : (
             <>
               <div className="space-y-4 mb-8">
-                <Button 
-                  variant="primary" 
-                  className="w-full text-lg py-4 shadow-pink-500/20" 
-                  onClick={() => handleCreate('image')}
-                  isLoading={isLoading}
-                  disabled={localName.trim().length < 4}
-                >
-                  Start Quick Menu (Image)
-                </Button>
-                <Button 
-                  variant="secondary" 
-                  className="w-full py-3"
-                  onClick={() => handleCreate('structured')}
-                  disabled={isLoading || localName.trim().length < 4}
-                >
-                  Start Structured Menu (Text)
-                </Button>
+                {invitedRoomId ? (
+                   <Button 
+                    variant="primary" 
+                    className="w-full text-lg py-5 shadow-indigo-500/20" 
+                    onClick={handleJoin}
+                    isLoading={isLoading}
+                   >
+                    Join Room Now
+                   </Button>
+                ) : (
+                  <>
+                    <Button 
+                      variant="primary" 
+                      className="w-full text-lg py-4 shadow-pink-500/20" 
+                      onClick={() => handleCreate('image')}
+                      isLoading={isLoading}
+                      disabled={localName.trim().length < 4}
+                    >
+                      Start Quick Menu (Image)
+                    </Button>
+                    <Button 
+                      variant="secondary" 
+                      className="w-full py-3"
+                      onClick={() => handleCreate('structured')}
+                      disabled={isLoading || localName.trim().length < 4}
+                    >
+                      Start Structured Menu (Text)
+                    </Button>
+                  </>
+                )}
               </div>
 
               <div className="relative flex items-center py-4">

@@ -43,11 +43,7 @@ function App() {
   const handleJoinRoom = async (roomId: string) => {
     try {
       const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:9000';
-      const res = await fetch(`${apiUrl}/api/room/${roomId}`, {
-        headers: {
-          'ngrok-skip-browser-warning': 'true'
-        }
-      });
+      const res = await fetch(`${apiUrl}/api/room/${roomId}`);
       if (!res.ok) throw new Error('Room not found');
       const data = await res.json();
       if (data.status === 'success') {
@@ -70,8 +66,7 @@ function App() {
       const res = await fetch(`${apiUrl}/api/room/create`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'ngrok-skip-browser-warning': 'true'
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({ hostId: sessionId, roomType: type })
       });
