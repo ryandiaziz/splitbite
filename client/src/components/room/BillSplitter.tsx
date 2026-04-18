@@ -29,6 +29,24 @@ export const BillSplitter: React.FC<BillSplitterProps> = ({ room, sessionId }) =
 
   return (
     <GlassCard className="p-6 bg-gradient-to-br from-indigo-600 to-purple-700 text-white shadow-xl mt-6 border-white/20">
+      <div className="mb-6 pb-4 border-b border-white/10">
+        <h3 className="text-xs font-bold uppercase tracking-widest opacity-60 mb-3">Room Billing Summary</h3>
+        <div className="space-y-1.5 text-xs opacity-90 font-medium">
+          <div className="flex justify-between">
+            <span>Room Subtotal</span>
+            <span>Rp {totalCartValue.toLocaleString()}</span>
+          </div>
+          <div className="flex justify-between text-emerald-300">
+            <span>Host Discount</span>
+            <span>- Rp {discount.toLocaleString()}</span>
+          </div>
+          <div className="flex justify-between text-amber-300">
+            <span>Tax & Delivery</span>
+            <span>+ Rp {additionalFees.toLocaleString()}</span>
+          </div>
+        </div>
+      </div>
+
       <h3 className="text-lg font-bold mb-4 opacity-90 drop-shadow-sm">Your Actual Split</h3>
       
       <div className="space-y-2 text-sm font-medium">
@@ -38,7 +56,7 @@ export const BillSplitter: React.FC<BillSplitterProps> = ({ room, sessionId }) =
         </div>
         <div className="flex justify-between">
           <span className="opacity-80">Proportional Tax & Fees</span>
-          <span>+ Rp {Math.ceil(myShareOfExtra).toLocaleString()}</span>
+          <span>{myShareOfExtra >= 0 ? '+' : '-'} Rp {Math.abs(Math.ceil(myShareOfExtra)).toLocaleString()}</span>
         </div>
         
         <div className="border-t border-white/30 mt-4 pt-4 flex justify-between items-center">
