@@ -112,14 +112,6 @@ export const Home: React.FC<{
                     >
                       Start Quick Menu (Image)
                     </Button>
-                    <Button 
-                      variant="secondary" 
-                      className="w-full py-3"
-                      onClick={() => handleCreate('structured')}
-                      disabled={isLoading || localName.trim().length < 4}
-                    >
-                      Start Structured Menu (Text)
-                    </Button>
                   </>
                 )}
               </div>
