@@ -16,6 +16,7 @@ export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId,
   const { isConnected, sendMessage, lastMessage } = useWebSocket(`ws://localhost:9000/api/room/${roomId}/ws?session_id=${sessionId}`);
   
   const [newItem, setNewItem] = useState('');
+  const [newPrice, setNewPrice] = useState('');
   const [newNote, setNewNote] = useState('');
   
   const [taxInput, setTaxInput] = useState('');
@@ -32,10 +33,15 @@ export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId,
 
   const handleAddItem = (e: React.FormEvent) => {
     e.preventDefault();
-    if (newItem.trim()) {
-      const item = { name: newItem, price: Math.floor(Math.random() * 50000) + 10000, note: newNote };
+    if (newItem.trim() && newPrice.trim()) {
+      const item = { 
+        name: newItem, 
+        price: Number(newPrice) || 0, 
+        note: newNote 
+      };
       sendMessage({ type: 'ADD_ORDER', data: item });
       setNewItem('');
+      setNewPrice('');
       setNewNote('');
     }
   };
@@ -155,6 +161,7 @@ export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId,
             <h2 className="text-slate-800 font-bold mb-4">Add My Order</h2>
             <form onSubmit={handleAddItem} className="space-y-3">
               <input type="text" value={newItem} onChange={e => setNewItem(e.target.value)} placeholder="Food name..." className="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" required />
+              <input type="number" value={newPrice} onChange={e => setNewPrice(e.target.value)} placeholder="Price (Rp)" className="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" required />
               <input type="text" value={newNote} onChange={e => setNewNote(e.target.value)} placeholder="Note (e.g. No onion)" className="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" />
               <Button type="submit" variant="primary" className="w-full" size="sm">Add to Cart</Button>
             </form>
