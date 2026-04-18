@@ -60,6 +60,11 @@ export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId,
   const [uploadingMenu, setUploadingMenu] = useState(false);
   const [uploadingReceipt, setUploadingReceipt] = useState(false);
 
+  // Edit order state (Host only)
+  const [editingOrderId, setEditingOrderId] = useState<string | null>(null);
+  const [editPrice, setEditPrice] = useState('');
+  const [editName, setEditName] = useState('');
+
   const menuFileRef = useRef<HTMLInputElement>(null);
   const hostReceiptRef = useRef<HTMLInputElement>(null);
 
@@ -111,6 +116,26 @@ export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId,
 
   const handleConfirmPayment = (targetSessionId: string) => {
     sendMessage({ type: 'CONFIRM_PAYMENT', data: { targetSessionId }});
+  };
+
+  const startEditingOrder = (order: any) => {
+    setEditingOrderId(order.id);
+    setEditPrice(order.price.toString());
+    setEditName(order.itemName);
+  };
+
+  const handleUpdateOrder = () => {
+    if (editingOrderId) {
+      sendMessage({
+        type: 'UPDATE_ORDER',
+        data: {
+          orderId: editingOrderId,
+          name: editName,
+          price: Number(editPrice) || 0
+        }
+      });
+      setEditingOrderId(null);
+    }
   };
 
   const handleMenuUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -425,11 +450,53 @@ export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId,
                   <div className="space-y-2">
                     {(p.orders || []).map((o: any, oIdx: number) => (
                       <div key={oIdx} className="flex justify-between items-center bg-white p-2 rounded-lg border border-slate-100 shadow-sm text-sm">
-                        <div>
-                          <p className="font-semibold text-slate-800">{o.itemName}</p>
+                        <div className="flex-1">
+                          {editingOrderId === o.id ? (
+                            <input 
+                              type="text" 
+                              value={editName} 
+                              onChange={e => setEditName(e.target.value)}
+                              className="w-full border rounded px-2 py-1 mb-1 font-semibold"
+                            />
+                          ) : (
+                            <p className="font-semibold text-slate-800">{o.itemName}</p>
+                          )}
                           {o.note && <p className="text-xs text-slate-500 italic mt-0.5">Note: {o.note}</p>}
                         </div>
-                        <span className="font-mono text-slate-500">Rp {o.price.toLocaleString()}</span>
+                        
+                        <div className="flex items-center gap-3">
+                          {editingOrderId === o.id ? (
+                            <div className="flex items-center gap-2">
+                              <input 
+                                type="number" 
+                                value={editPrice} 
+                                onChange={e => setEditPrice(e.target.value)}
+                                className="w-24 border rounded px-2 py-1 text-right font-mono"
+                              />
+                              <button onClick={handleUpdateOrder} className="text-emerald-600 font-bold hover:text-emerald-700">✓</button>
+                              <button onClick={() => setEditingOrderId(null)} className="text-rose-500 font-bold hover:text-rose-600">✕</button>
+                            </div>
+                          ) : (
+                            <>
+                              <div className="text-right">
+                                {o.price === 0 ? (
+                                  <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-bold uppercase animate-pulse">Menunggu harga...</span>
+                                ) : (
+                                  <span className="font-mono text-slate-500">Rp {o.price.toLocaleString()}</span>
+                                )}
+                              </div>
+                              {isHost && (
+                                <button 
+                                  onClick={() => startEditingOrder(o)}
+                                  className="text-slate-400 hover:text-indigo-600 transition-colors"
+                                  title="Edit Price"
+                                >
+                                  ✎
+                                </button>
+                              )}
+                            </>
+                          )}
+                        </div>
                       </div>
                     ))}
                     {(p.orders || []).length === 0 && <span className="text-xs text-slate-400 italic">Thinking...</span>}
@@ -455,7 +522,10 @@ export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId,
                 <h2 className="text-slate-800 font-bold mb-4">Add My Order</h2>
                 <form onSubmit={handleAddItem} className="space-y-3">
                   <input type="text" value={newItem} onChange={e => setNewItem(e.target.value)} placeholder="Food name..." className="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" required />
-                  <input type="number" value={newPrice} onChange={e => setNewPrice(e.target.value)} placeholder="Price (Rp)" className="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" required />
+                  <div className="relative">
+                    <input type="number" value={newPrice} onChange={e => setNewPrice(e.target.value)} placeholder="Price (Rp) - Let empty if unknown" className="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" />
+                    {!newPrice && <span className="absolute right-3 top-2.5 text-[10px] text-slate-400 italic">Optional</span>}
+                  </div>
                   <input type="text" value={newNote} onChange={e => setNewNote(e.target.value)} placeholder="Note (e.g. No onion)" className="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" />
                   <Button type="submit" variant="primary" className="w-full" size="sm">Add to Cart</Button>
                 </form>

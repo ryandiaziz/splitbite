@@ -70,7 +70,7 @@ class ClientActor(roomId: String, sessionId: String, out: ActorRef, manager: Act
                   val participant = room.participants.find(_.sessionId == sessionId)
                   if (!room.isOrderLocked && participant.exists(_.isApproved)) {
                     val itemName = (data \ "name").as[String]
-                    val price = (data \ "price").as[Double]
+                    val price = (data \ "price").asOpt[Double].getOrElse(0.0)
                     val note = (data \ "note").asOpt[String].filter(_.trim.nonEmpty)
                     val newOrder = Order(java.util.UUID.randomUUID().toString.take(8), sessionId, itemName, price, note)
 
@@ -80,6 +80,26 @@ class ClientActor(roomId: String, sessionId: String, out: ActorRef, manager: Act
                       val updatedParticipants = room.participants.updated(pIndex, p.copy(orders = p.orders :+ newOrder))
                       updatedRoom = room.copy(participants = updatedParticipants)
                     }
+                  }
+
+                case Some("UPDATE_ORDER") =>
+                  if (room.hostId == sessionId) {
+                    val orderId = (data \ "orderId").as[String]
+                    val newPrice = (data \ "price").asOpt[Double]
+                    val newName = (data \ "name").asOpt[String]
+
+                    val updatedParticipants = room.participants.map { p =>
+                      val oIndex = p.orders.indexWhere(_.id == orderId)
+                      if (oIndex >= 0) {
+                        val o = p.orders(oIndex)
+                        val updatedOrder = o.copy(
+                          price = newPrice.getOrElse(o.price),
+                          itemName = newName.getOrElse(o.itemName)
+                        )
+                        p.copy(orders = p.orders.updated(oIndex, updatedOrder))
+                      } else p
+                    }
+                    updatedRoom = room.copy(participants = updatedParticipants)
                   }
 
                 case Some("UPLOAD_RECEIPT") =>
