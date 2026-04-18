@@ -39,12 +39,36 @@ class ClientActor(roomId: String, sessionId: String, out: ActorRef, manager: Act
                 case Some("JOIN_PARTICIPANT") =>
                   val name = (data \ "name").asOpt[String].getOrElse("Guest")
                   if (!room.participants.exists(_.sessionId == sessionId)) {
-                    val p = Participant(java.util.UUID.randomUUID().toString.take(6), name, sessionId, "pending", None, List.empty)
+                    val isApproved = room.hostId == sessionId
+                    val p = Participant(java.util.UUID.randomUUID().toString.take(6), name, sessionId, "pending", isApproved, false, None, List.empty)
                     updatedRoom = room.copy(participants = room.participants :+ p)
                   }
 
+                case Some("APPROVE_PARTICIPANT") =>
+                  if (room.hostId == sessionId) {
+                    val targetSessionId = (data \ "targetSessionId").as[String]
+                    val pIndex = room.participants.indexWhere(_.sessionId == targetSessionId)
+                    if (pIndex >= 0) {
+                      updatedRoom = room.copy(
+                        participants = room.participants.updated(pIndex, room.participants(pIndex).copy(isApproved = true))
+                      )
+                    }
+                  }
+
+                case Some("REJECT_PARTICIPANT") =>
+                  if (room.hostId == sessionId) {
+                    val targetSessionId = (data \ "targetSessionId").as[String]
+                    val pIndex = room.participants.indexWhere(_.sessionId == targetSessionId)
+                    if (pIndex >= 0) {
+                      updatedRoom = room.copy(
+                        participants = room.participants.updated(pIndex, room.participants(pIndex).copy(isRejected = true))
+                      )
+                    }
+                  }
+
                 case Some("ADD_ORDER") =>
-                  if (!room.isOrderLocked) {
+                  val participant = room.participants.find(_.sessionId == sessionId)
+                  if (!room.isOrderLocked && participant.exists(_.isApproved)) {
                     val itemName = (data \ "name").as[String]
                     val price = (data \ "price").as[Double]
                     val note = (data \ "note").asOpt[String].filter(_.trim.nonEmpty)

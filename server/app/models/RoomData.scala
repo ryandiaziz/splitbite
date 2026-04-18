@@ -21,6 +21,8 @@ case class Participant(
   name: String,
   sessionId: String,
   paymentStatus: String, // "pending", "verifying", "paid"
+  isApproved: Boolean,
+  isRejected: Boolean,
   receiptImageUrl: Option[String],
   orders: List[Order]
 )

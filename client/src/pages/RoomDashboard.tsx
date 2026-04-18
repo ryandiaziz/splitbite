@@ -65,12 +65,24 @@ export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId,
   const isHost = lastMessage?.hostId === sessionId;
   const participants = lastMessage?.participants || [];
   const isOrderLocked = lastMessage?.isOrderLocked || false;
+  
+  const me = participants.find((p: any) => p.sessionId === sessionId);
+  const isApproved = isHost || me?.isApproved;
+  const isRejected = me?.isRejected;
 
   useEffect(() => {
     if (isConnected) {
       sendMessage({ type: 'JOIN_PARTICIPANT', data: { name: myName }});
     }
   }, [isConnected, sendMessage, myName]);
+
+  const handleApprove = (targetSessionId: string) => {
+    sendMessage({ type: 'APPROVE_PARTICIPANT', data: { targetSessionId }});
+  };
+
+  const handleReject = (targetSessionId: string) => {
+    sendMessage({ type: 'REJECT_PARTICIPANT', data: { targetSessionId }});
+  };
 
   const handleAddItem = (e: React.FormEvent) => {
     e.preventDefault();
@@ -177,7 +189,40 @@ export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId,
           </div>
         </div>
       </header>
-
+      
+      {isRejected ? (
+        <div className="flex-1 flex items-center justify-center p-6 min-h-[calc(100vh-64px)]">
+          <GlassCard className="max-w-md w-full p-10 text-center border-rose-200 bg-rose-50/30">
+            <div className="text-6xl mb-6">🚫</div>
+            <h2 className="text-2xl font-bold text-rose-800 mb-4">Akses Ditolak</h2>
+            <p className="text-slate-600 mb-8">
+              Maaf, permintaan bergabungmu ditolak oleh Host. 
+              Mungkin ruangan ini sudah penuh atau bersifat privat.
+            </p>
+            <Button variant="primary" className="w-full" onClick={onLeave}>
+              Kembali ke Beranda
+            </Button>
+          </GlassCard>
+        </div>
+      ) : !isApproved && isConnected ? (
+        <div className="flex-1 flex items-center justify-center p-6 min-h-[calc(100vh-64px)]">
+           <GlassCard className="max-w-md w-full p-10 text-center animate-pulse">
+              <div className="text-6xl mb-6">👋</div>
+              <h2 className="text-2xl font-bold text-slate-800 mb-4">Hello, {myName}!</h2>
+              <p className="text-slate-600 mb-8">
+                Tunggu sebentar ya! Host sedang mengecek permintaan bergabungmu. 
+                Halaman ini akan otomatis terbuka setelah kamu disetujui.
+              </p>
+              <div className="flex items-center justify-center gap-3 text-indigo-600 font-semibold">
+                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Menunggu persetujuan...</span>
+              </div>
+           </GlassCard>
+        </div>
+      ) : (
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
           {/* Menu Overview — show uploaded image or upload area for host */}
@@ -228,7 +273,38 @@ export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId,
           {/* Host Controls */}
           {isHost && (
             <GlassCard className="p-6 bg-white border border-amber-200 shadow-amber-100/50" intensity="light">
-              <h2 className="text-lg font-bold text-slate-800 mb-5">Host Controls</h2>
+              <h2 className="text-lg font-bold text-slate-800 mb-5 text-indigo-600">Host Dashboard</h2>
+
+              {/* Join Requests */}
+              {participants.some((p: any) => !p.isApproved && !p.isRejected) && (
+                <div className="mb-6 bg-indigo-50/50 rounded-xl border border-indigo-100 p-4">
+                  <h3 className="text-sm font-bold text-indigo-700 uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <span className="flex h-2 w-2 rounded-full bg-indigo-600 animate-ping"></span>
+                    Permintaan Bergabung ({participants.filter((p: any) => !p.isApproved && !p.isRejected).length})
+                  </h3>
+                  <div className="space-y-3">
+                    {participants.filter((p: any) => !p.isApproved && !p.isRejected).map((p: any) => (
+                      <div key={p.sessionId} className="flex items-center justify-between bg-white p-3 rounded-lg border border-indigo-100 shadow-sm">
+                        <span className="font-bold text-slate-700">{p.name}</span>
+                        <div className="flex gap-2">
+                          <button 
+                            onClick={() => handleApprove(p.sessionId)}
+                            className="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-3 py-1.5 rounded-md transition-colors"
+                          >
+                            Approve
+                          </button>
+                          <button 
+                            onClick={() => handleReject(p.sessionId)}
+                            className="bg-rose-100 hover:bg-rose-200 text-rose-600 text-xs font-bold px-3 py-1.5 rounded-md transition-colors"
+                          >
+                            Reject
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Menu description input */}
               <div className="mb-5">
@@ -317,9 +393,9 @@ export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId,
             </h2>
 
             <div className="space-y-6">
-              {participants.length === 0 && <p className="text-slate-400 text-sm italic">No participants yet.</p>}
+              {participants.filter((p: any) => p.isApproved && !p.isRejected).length === 0 && <p className="text-slate-400 text-sm italic">No participants yet.</p>}
               
-              {participants.map((p: any, idx: number) => {
+              {participants.filter((p: any) => p.isApproved && !p.isRejected).map((p: any, idx: number) => {
                 const isMe = p.sessionId === sessionId;
                 const pTotal = (p.orders || []).reduce((a: number, o: any) => a + o.price, 0);
                 
@@ -393,6 +469,7 @@ export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId,
           )}
         </div>
       </main>
+      )}
     </div>
   );
 };

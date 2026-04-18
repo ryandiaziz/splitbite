@@ -14,16 +14,20 @@ export const Home: React.FC<{
 
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (roomId.trim()) {
+    if (localName.trim() && roomId.trim()) {
       setIsLoading(true);
+      onSetName(localName.trim());
       // Simulate network
       setTimeout(() => onJoinRoom(roomId), 600);
     }
   };
 
   const handleCreate = (type: 'image' | 'structured') => {
-    setIsLoading(true);
-    setTimeout(() => onCreateRoom(type), 600);
+    if (localName.trim()) {
+      setIsLoading(true);
+      onSetName(localName.trim());
+      setTimeout(() => onCreateRoom(type), 600);
+    }
   }
 
   return (
@@ -50,15 +54,18 @@ export const Home: React.FC<{
               value={localName} 
               onChange={(e) => {
                 setLocalName(e.target.value);
-                onSetName(e.target.value);
               }}
               placeholder="e.g., Alex" 
               className="w-full p-3 border-2 border-indigo-200 rounded-xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 text-indigo-900 font-bold outline-none transition-all" 
+              minLength={4}
             />
+            {localName.trim().length > 0 && localName.trim().length < 4 && (
+              <p className="text-xs text-rose-500 font-bold mt-2 animate-pulse">Min. 4 characters required!</p>
+            )}
           </div>
 
-          {!localName.trim() ? (
-            <p className="text-indigo-900 font-medium animate-pulse">👆 Please enter your nickname above to continue!</p>
+          {!localName.trim() || localName.trim().length < 4 ? (
+            <p className="text-indigo-900 font-medium animate-pulse">👆 Please enter your nickname (min. 4 chars) to continue!</p>
           ) : (
             <>
               <div className="space-y-4 mb-8">
@@ -67,6 +74,7 @@ export const Home: React.FC<{
                   className="w-full text-lg py-4 shadow-pink-500/20" 
                   onClick={() => handleCreate('image')}
                   isLoading={isLoading}
+                  disabled={localName.trim().length < 4}
                 >
                   Start Quick Menu (Image)
                 </Button>
@@ -74,7 +82,7 @@ export const Home: React.FC<{
                   variant="secondary" 
                   className="w-full py-3"
                   onClick={() => handleCreate('structured')}
-                  disabled={isLoading}
+                  disabled={isLoading || localName.trim().length < 4}
                 >
                   Start Structured Menu (Text)
                 </Button>
@@ -95,7 +103,7 @@ export const Home: React.FC<{
                   onChange={(e) => setRoomId(e.target.value)}
                   required
                 />
-                <Button type="submit" variant="primary" disabled={isLoading || !roomId.trim()}>
+                <Button type="submit" variant="primary" disabled={isLoading || !roomId.trim() || localName.trim().length < 4}>
                   Join
                 </Button>
               </form>
