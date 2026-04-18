@@ -1,7 +1,0 @@
-[0m[[0m[31merror[0m] [0m[0m[31m[31m-- Error: /home/ryan/Projects/splitbite/server/app/actors/ClientActor.scala:64:127 [0m[0m[0m
-[0m[[0m[31merror[0m] [0m[0m[31m64 |[0m                    [33mval[0m [36mupdatedParticipants[0m = room.participants.updated(pIndex, p.copy(paymentStatus = [31m"paid"[0m, paymentProofUrl = base64))[0m
-[0m[[0m[31merror[0m] [0m[0m[31m[31m   |[0m                                                                                                               ^^^^^^^^^^^^^^^^^^^^^^^^[0m[0m
-[0m[[0m[31merror[0m] [0m[0m[31m   |[0m[33mmethod[0m [35mcopy[0m in [33mclass[0m [35mParticipant[0m: (id: String, name: String, sessionId: String, paymentStatus: String,[0m
-[0m[[0m[31merror[0m] [0m[0m[31m   |[0m  receiptImageUrl: Option[String], orders: List[models.Order]):[0m
-[0m[[0m[31merror[0m] [0m[0m[31m   |[0m  models.Participant does not have a parameter paymentProofUrl[0m
-[0m[[0m[31merror[0m] [0m[0mone error found[0m
