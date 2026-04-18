@@ -33,6 +33,8 @@ class RoomController @Inject()(val controllerComponents: ControllerComponents, r
               // Generate a random room ID
               val roomId = java.util.UUID.randomUUID().toString.take(8)
               
+              val expiresAt = System.currentTimeMillis() + (redisService.defaultTtl * 1000)
+              
               val newRoom = Room(
                 id = roomId,
                 hostId = hostId,
@@ -44,7 +46,8 @@ class RoomController @Inject()(val controllerComponents: ControllerComponents, r
                 menuItems = List.empty,
                 participants = List.empty,
                 additionalFees = 0.0,
-                discount = 0.0
+                discount = 0.0,
+                expiresAt = expiresAt
               )
 
               // Save to Redis

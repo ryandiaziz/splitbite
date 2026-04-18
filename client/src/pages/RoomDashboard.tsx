@@ -57,6 +57,21 @@ const parseIDR = (val: string) => {
   return val.replace(/\./g, '');
 };
 
+// Timer formatter: returns "HH:MM:SS" or "MM:SS"
+const formatTimeLeft = (millis: number) => {
+  if (millis <= 0) return '00:00';
+  const seconds = Math.floor((millis / 1000) % 60);
+  const minutes = Math.floor((millis / (1000 * 60)) % 60);
+  const hours = Math.floor((millis / (1000 * 60 * 60)) % 24);
+
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  
+  if (hours > 0) {
+    return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+  }
+  return `${pad(minutes)}:${pad(seconds)}`;
+};
+
 export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId, myName, onLeave }) => {
   const wsUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:9000';
   const { isConnected, sendMessage, lastMessage } = useWebSocket(`${wsUrl}/api/room/${roomId}/ws?session_id=${sessionId}`);
@@ -70,6 +85,7 @@ export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId,
   const [menuDescInput, setMenuDescInput] = useState('');
 
   const [copyFeedback, setCopyFeedback] = useState(false);
+  const [timeLeft, setTimeLeft] = useState<number | null>(null);
 
   const [uploadingMenu, setUploadingMenu] = useState(false);
   const [uploadingReceipt, setUploadingReceipt] = useState(false);
@@ -96,6 +112,32 @@ export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId,
       sendMessage({ type: 'JOIN_PARTICIPANT', data: { name: myName }});
     }
   }, [isConnected, sendMessage, myName]);
+
+  // Handle Room Deletion
+  useEffect(() => {
+    if (lastMessage?.type === 'ROOM_DELETED') {
+      alert("Room telah ditutup oleh Host.");
+      onLeave();
+    }
+  }, [lastMessage, onLeave]);
+
+  // Expiration countdown
+  useEffect(() => {
+    if (!lastMessage?.expiresAt) return;
+
+    const interval = setInterval(() => {
+      const remaining = lastMessage.expiresAt - Date.now();
+      setTimeLeft(remaining);
+      
+      if (remaining <= 0) {
+        clearInterval(interval);
+        alert("Waktu room telah habis.");
+        onLeave();
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [lastMessage?.expiresAt, onLeave]);
 
   const handleApprove = (targetSessionId: string) => {
     sendMessage({ type: 'APPROVE_PARTICIPANT', data: { targetSessionId }});
@@ -209,6 +251,12 @@ export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId,
     sendMessage({ type: 'TOGGLE_ORDER_LOCK', data: {} });
   };
 
+  const handleCloseRoom = () => {
+    if (window.confirm("Apakah Anda yakin ingin menutup room dan HAPUS semua data pasanan? Tindakan ini tidak bisa dibatalkan.")) {
+      sendMessage({ type: 'CLOSE_ROOM', data: {} });
+    }
+  };
+
   const globalTotal = participants.flatMap((p: any) => p.orders || []).reduce((a: number, o: any) => a + o.price, 0);
 
   return (
@@ -234,6 +282,12 @@ export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId,
                 </svg>
               </button>
             </div>
+            {timeLeft !== null && (
+              <div className="flex items-center gap-1.5 px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded-md border border-indigo-100 animate-pulse">
+                <span className="text-[10px] font-bold uppercase tracking-wider">Expires:</span>
+                <span className="font-mono text-xs font-bold tabular-nums">{formatTimeLeft(timeLeft)}</span>
+              </div>
+            )}
             <div className="flex gap-1.5">
               {isHost && <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-[10px] sm:text-xs font-bold rounded uppercase">Host</span>}
               {isOrderLocked && (
@@ -450,6 +504,16 @@ export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId,
                 >
                   {isOrderLocked ? '🔓 Re-open Orders' : '🔒 Lock Orders'}
                 </button>
+                <div className="mt-3 pt-3 border-t border-amber-200/40">
+                   <Button 
+                    variant="secondary" 
+                    className="w-full bg-rose-50 text-rose-600 border-rose-200 hover:bg-rose-100" 
+                    size="sm"
+                    onClick={handleCloseRoom}
+                   >
+                    🗑️ Tutup Room & Hapus Data
+                   </Button>
+                </div>
                 <p className="text-xs text-slate-400 text-center mt-1.5">
                   {isOrderLocked ? 'Participants cannot add/edit orders right now.' : 'Click to lock once everyone has finished ordering.'}
                 </p>

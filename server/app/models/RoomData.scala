@@ -38,7 +38,8 @@ case class Room(
   menuItems: List[MenuItem],
   participants: List[Participant],
   additionalFees: Double,
-  discount: Double
+  discount: Double,
+  expiresAt: Long
 )
 
 object RoomFormats {

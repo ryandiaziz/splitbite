@@ -150,6 +150,12 @@ class ClientActor(roomId: String, sessionId: String, out: ActorRef, manager: Act
                     updatedRoom = room.copy(isOrderLocked = !room.isOrderLocked)
                   }
 
+                case Some("CLOSE_ROOM") =>
+                  if (room.hostId == sessionId) {
+                    redisService.del(s"room:$roomId")
+                    manager ! RoomManagerActor.Broadcast(roomId, Json.obj("type" -> "ROOM_DELETED").toString())
+                  }
+
                 case _ => // discard
               }
 

@@ -12,7 +12,7 @@ import scala.jdk.CollectionConverters._
 @Singleton
 class RedisService @Inject()(config: Configuration, lifecycle: ApplicationLifecycle) {
   private val redisUrl = config.getOptional[String]("redis.url").getOrElse("redis://localhost:6379")
-  private val defaultTtl = config.getOptional[Duration]("splitbite.room.ttl").getOrElse(24.hours).toSeconds
+  val defaultTtl = config.getOptional[Duration]("splitbite.room.ttl").getOrElse(24.hours).toSeconds
   
   // Create client and sync connection
   private val client: RedisClient = RedisClient.create(redisUrl)
@@ -39,6 +39,13 @@ class RedisService @Inject()(config: Configuration, lifecycle: ApplicationLifecy
    */
   def get(key: String): Option[String] = {
     Option(sync.get(key))
+  }
+
+  /**
+   * Delete key from Redis
+   */
+  def del(key: String): Unit = {
+    sync.del(key)
   }
 
   /**
