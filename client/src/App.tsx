@@ -49,18 +49,21 @@ function App() {
       if (data.status === 'success') {
         setCurrentRoom(roomId);
         window.location.hash = `room/${roomId}`;
+        return true;
       } else {
         alert(data.message || 'Room not found');
         window.location.hash = '';
+        return false;
       }
     } catch (err) {
       alert('Failed to connect to server or room does not exist.');
       window.location.hash = '';
+      return false;
     }
   };
 
   const handleCreateRoom = async (type: 'image' | 'structured') => {
-    if (!sessionId) return;
+    if (!sessionId) return false;
     try {
       const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:9000';
       const res = await fetch(`${apiUrl}/api/room/create`, {
@@ -74,11 +77,14 @@ function App() {
       if (data.status === 'success' && data.roomId) {
         setCurrentRoom(data.roomId);
         window.location.hash = `room/${data.roomId}`;
+        return true;
       } else {
         alert(data.message || 'Failed to create room');
+        return false;
       }
     } catch (err) {
       alert('Failed to connect to server. Ensure Backend is running.');
+      return false;
     }
   };
 

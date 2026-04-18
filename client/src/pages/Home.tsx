@@ -3,8 +3,8 @@ import { Button } from '../components/ui/Button';
 import { GlassCard } from '../components/ui/GlassCard';
 
 export const Home: React.FC<{ 
-  onJoinRoom: (id: string) => void, 
-  onCreateRoom: (type: 'image' | 'structured') => void,
+  onJoinRoom: (id: string) => Promise<boolean>, 
+  onCreateRoom: (type: 'image' | 'structured') => Promise<boolean>,
   myName: string,
   onSetName: (name: string) => void
 }> = ({ onJoinRoom, onCreateRoom, myName, onSetName }) => {
@@ -22,22 +22,27 @@ export const Home: React.FC<{
     }
   }, []);
 
-  const handleJoin = (e: React.FormEvent) => {
+  const handleJoin = async (e: React.FormEvent) => {
     e.preventDefault();
     const finalRoomId = roomId || invitedRoomId;
     if (localName.trim() && finalRoomId) {
       setIsLoading(true);
       onSetName(localName.trim());
-      // Wait a bit for App state to sync if needed, though onJoinRoom is direct
-      setTimeout(() => onJoinRoom(finalRoomId), 600);
+      // Wait a bit for aesthetic delay
+      await new Promise(resolve => setTimeout(resolve, 600));
+      await onJoinRoom(finalRoomId);
+      setIsLoading(false);
     }
   };
 
-  const handleCreate = (type: 'image' | 'structured') => {
+  const handleCreate = async (type: 'image' | 'structured') => {
     if (localName.trim()) {
       setIsLoading(true);
       onSetName(localName.trim());
-      setTimeout(() => onCreateRoom(type), 600);
+      // Wait a bit for aesthetic delay
+      await new Promise(resolve => setTimeout(resolve, 600));
+      await onCreateRoom(type);
+      setIsLoading(false);
     }
   }
 
