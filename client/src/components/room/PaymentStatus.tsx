@@ -14,15 +14,30 @@ export const PaymentStatus: React.FC<PaymentStatusProps> = ({ participant, isHos
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 800 * 1024) { // roughly 800kb limit for naive Redis safety
-        alert("Image too large. Please use a smaller screenshot (Max 800 KB).");
+      if (file.size > 5 * 1024 * 1024) { // 5MB raw limit (will be compressed)
+        alert("Image too large. Max 5 MB.");
         return;
       }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        onUploadReceipt(reader.result as string);
+      // Compress via Canvas before sending
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        const MAX_DIM = 800;
+        if (width > MAX_DIM || height > MAX_DIM) {
+          const ratio = Math.min(MAX_DIM / width, MAX_DIM / height);
+          width = Math.round(width * ratio);
+          height = Math.round(height * ratio);
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d')!;
+        ctx.drawImage(img, 0, 0, width, height);
+        const base64 = canvas.toDataURL('image/jpeg', 0.5);
+        onUploadReceipt(base64);
       };
-      reader.readAsDataURL(file);
+      img.onerror = () => alert("Gagal memproses gambar.");
+      img.src = URL.createObjectURL(file);
     }
   };
 

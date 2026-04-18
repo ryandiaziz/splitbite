@@ -44,16 +44,18 @@ class ClientActor(roomId: String, sessionId: String, out: ActorRef, manager: Act
                   }
 
                 case Some("ADD_ORDER") =>
-                  val itemName = (data \ "name").as[String]
-                  val price = (data \ "price").as[Double]
-                  val note = (data \ "note").asOpt[String].filter(_.trim.nonEmpty)
-                  val newOrder = Order(java.util.UUID.randomUUID().toString.take(8), sessionId, itemName, price, note)
+                  if (!room.isOrderLocked) {
+                    val itemName = (data \ "name").as[String]
+                    val price = (data \ "price").as[Double]
+                    val note = (data \ "note").asOpt[String].filter(_.trim.nonEmpty)
+                    val newOrder = Order(java.util.UUID.randomUUID().toString.take(8), sessionId, itemName, price, note)
 
-                  val pIndex = room.participants.indexWhere(_.sessionId == sessionId)
-                  if (pIndex >= 0) {
-                    val p = room.participants(pIndex)
-                    val updatedParticipants = room.participants.updated(pIndex, p.copy(orders = p.orders :+ newOrder))
-                    updatedRoom = room.copy(participants = updatedParticipants)
+                    val pIndex = room.participants.indexWhere(_.sessionId == sessionId)
+                    if (pIndex >= 0) {
+                      val p = room.participants(pIndex)
+                      val updatedParticipants = room.participants.updated(pIndex, p.copy(orders = p.orders :+ newOrder))
+                      updatedRoom = room.copy(participants = updatedParticipants)
+                    }
                   }
 
                 case Some("UPLOAD_RECEIPT") =>
@@ -81,6 +83,27 @@ class ClientActor(roomId: String, sessionId: String, out: ActorRef, manager: Act
                     val fees = (data \ "additionalFees").asOpt[Double].getOrElse(room.additionalFees)
                     val discount = (data \ "discount").asOpt[Double].getOrElse(room.discount)
                     updatedRoom = room.copy(additionalFees = fees, discount = discount)
+                  }
+
+                case Some("UPDATE_MENU") =>
+                  if (room.hostId == sessionId) {
+                    val menuImage = (data \ "menuImage").asOpt[String]
+                    val description = (data \ "description").asOpt[String]
+                    updatedRoom = room.copy(
+                      menuImageUrl = menuImage.orElse(room.menuImageUrl),
+                      menuDescription = description.orElse(room.menuDescription)
+                    )
+                  }
+
+                case Some("UPLOAD_HOST_RECEIPT") =>
+                  if (room.hostId == sessionId) {
+                    val receipt = (data \ "receipt").asOpt[String]
+                    updatedRoom = room.copy(hostReceiptUrl = receipt)
+                  }
+
+                case Some("TOGGLE_ORDER_LOCK") =>
+                  if (room.hostId == sessionId) {
+                    updatedRoom = room.copy(isOrderLocked = !room.isOrderLocked)
                   }
 
                 case _ => // discard
