@@ -40,7 +40,7 @@ function compressImage(file: File): Promise<string> {
       const base64 = canvas.toDataURL('image/jpeg', JPEG_QUALITY);
       resolve(base64);
     };
-    img.onerror = () => reject(new Error('Gagal memproses gambar'));
+    img.onerror = () => reject(new Error('Failed to process image'));
     img.src = URL.createObjectURL(file);
   });
 }
@@ -118,7 +118,7 @@ export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId,
   // Handle Room Deletion
   useEffect(() => {
     if (lastMessage?.type === 'ROOM_DELETED') {
-      alert("Room telah ditutup oleh Host.");
+      alert("Room has been closed by the Host.");
       onLeave();
     }
   }, [lastMessage, onLeave]);
@@ -133,7 +133,7 @@ export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId,
       
       if (remaining <= 0) {
         clearInterval(interval);
-        alert("Waktu room telah habis.");
+        alert("Room time has expired.");
         onLeave();
       }
     }, 1000);
@@ -211,7 +211,7 @@ export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId,
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > RAW_FILE_LIMIT) {
-      alert("Gambar terlalu besar. Maksimal 5 MB.");
+      alert("Image too large. Maximum 5 MB.");
       return;
     }
     setUploadingMenu(true);
@@ -220,7 +220,7 @@ export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId,
       sendMessage({ type: 'UPDATE_MENU', data: { menuImage: compressed }});
       setTimeout(() => setUploadingMenu(false), 2000);
     } catch (err) {
-      alert("Gagal memproses gambar. Coba lagi.");
+      alert("Failed to process image. Try again.");
       setUploadingMenu(false);
     }
     // Reset input so the same file can be re-selected
@@ -237,7 +237,7 @@ export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId,
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > RAW_FILE_LIMIT) {
-      alert("Gambar terlalu besar. Maksimal 5 MB.");
+      alert("Image too large. Maximum 5 MB.");
       return;
     }
     setUploadingReceipt(true);
@@ -246,7 +246,7 @@ export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId,
       sendMessage({ type: 'UPLOAD_HOST_RECEIPT', data: { receipt: compressed }});
       setTimeout(() => setUploadingReceipt(false), 2000);
     } catch (err) {
-      alert("Gagal memproses gambar. Coba lagi.");
+      alert("Failed to process image. Try again.");
       setUploadingReceipt(false);
     }
     if (hostReceiptRef.current) hostReceiptRef.current.value = '';
@@ -258,7 +258,7 @@ export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId,
   };
 
   const handleCloseRoom = () => {
-    if (window.confirm("Apakah Anda yakin ingin menutup room dan HAPUS semua data pasanan? Tindakan ini tidak bisa dibatalkan.")) {
+    if (window.confirm("Are you sure you want to close the room and DELETE all order data? This action cannot be undone.")) {
       sendMessage({ type: 'CLOSE_ROOM', data: {} });
     }
   };
@@ -298,7 +298,7 @@ export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId,
               {isHost && <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-[10px] sm:text-xs font-bold rounded uppercase">Host</span>}
               {isOrderLocked && (
                 <span className="px-2 py-0.5 bg-rose-100 text-rose-700 text-[10px] sm:text-xs font-bold rounded uppercase animate-pulse">
-                  🔒 Pesanan Ditutup
+                  🔒 Orders Closed
                 </span>
               )}
             </div>
@@ -517,7 +517,7 @@ export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId,
                     size="sm"
                     onClick={handleCloseRoom}
                    >
-                    🗑️ Tutup Room & Hapus Data
+                    🗑️ Close Room & Delete Data
                    </Button>
                 </div>
                 <p className="text-xs text-slate-400 text-center mt-1.5">
@@ -559,97 +559,98 @@ export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId,
                   
                   <div className="space-y-2">
                     {(p.orders || []).map((o: any, oIdx: number) => (
-                      <div key={oIdx} className="flex justify-between items-center bg-white p-2 rounded-lg border border-slate-100 shadow-sm text-sm">
-                        <div className="flex-1 max-w-full overflow-hidden">
-                          {editingOrderId === o.id ? (
-                            <div className="space-y-2 pr-2">
-                               <label className="block text-[10px] font-bold text-slate-400 uppercase">Item Name</label>
+                      <div key={oIdx} className={`bg-white rounded-lg border border-slate-100 shadow-sm text-sm overflow-hidden ${editingOrderId === o.id ? ' ring-2 ring-indigo-500 ring-inset' : ''}`}>
+                        {editingOrderId === o.id ? (
+                          <div className="p-4 space-y-4 bg-indigo-50/30">
+                            <div className="space-y-2">
+                               <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Item Name</label>
                                <input 
                                 type="text" 
                                 value={editName} 
                                 onChange={e => setEditName(e.target.value)}
-                                className="w-full border-2 border-indigo-100 rounded-lg px-3 py-2 font-semibold focus:border-indigo-500 outline-none transition-all"
+                                className="w-full border-2 border-white rounded-xl px-4 py-2.5 font-semibold focus:border-indigo-500 outline-none transition-all shadow-sm"
                                 placeholder="Item Name..."
                               />
                             </div>
-                          ) : (
-                            <div className="flex flex-col">
-                              <p className="font-semibold text-slate-800 break-words">
-                                {o.itemName} 
-                                {o.quantity > 1 && <span className="ml-1.5 text-indigo-600 font-bold">x{o.quantity}</span>}
-                              </p>
-                            </div>
-                          )}
-                          {o.note && <p className="text-xs text-slate-500 italic mt-0.5 break-words">Note: {o.note}</p>}
-                        </div>
-                        
-                        <div className="flex items-center gap-3 shrink-0">
-                          {editingOrderId === o.id ? (
-                            <div className="flex flex-col items-end gap-2 bg-indigo-50 p-3 rounded-xl border border-indigo-100">
-                              <div className="w-full">
-                                <label className="block text-[10px] font-bold text-indigo-500 uppercase mb-1">Price (Rp)</label>
+                            
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <label className="block text-[10px] font-bold text-indigo-500 uppercase tracking-wider">Price (Rp)</label>
                                 <input 
                                   type="text" 
                                   value={formatIDR(editPrice)} 
                                   onChange={e => setEditPrice(parseIDR(e.target.value))}
-                                  className="w-32 border-2 border-white rounded-lg px-3 py-2 text-right font-mono font-bold text-indigo-700 focus:border-indigo-400 outline-none transition-all shadow-sm"
+                                  className="w-full border-2 border-white rounded-xl px-4 py-2.5 font-mono font-bold text-indigo-700 focus:border-indigo-400 outline-none transition-all shadow-sm"
                                   placeholder="0"
                                 />
                               </div>
-                              <div className="w-full">
-                                <label className="block text-[10px] font-bold text-indigo-500 uppercase mb-1">Qty</label>
-                                <div className="flex items-center gap-2">
-                                  <button onClick={() => setEditQuantity(Math.max(1, editQuantity - 1))} className="w-8 h-8 flex items-center justify-center bg-white border border-indigo-200 rounded-md text-indigo-600 font-bold">-</button>
+                              <div className="space-y-2">
+                                <label className="block text-[10px] font-bold text-indigo-500 uppercase tracking-wider">Quantity</label>
+                                <div className="flex items-center h-[46px] bg-white rounded-xl border-2 border-white shadow-sm px-2">
+                                  <button type="button" onClick={() => setEditQuantity(Math.max(1, editQuantity - 1))} className="w-8 h-8 flex items-center justify-center text-indigo-600 font-black hover:bg-indigo-50 rounded-lg transition-colors">-</button>
                                   <input 
                                     type="number" 
                                     value={editQuantity} 
                                     onChange={e => setEditQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                                    className="w-12 border-2 border-white rounded-lg py-1 text-center font-bold text-indigo-700 focus:border-indigo-400 outline-none transition-all shadow-sm"
+                                    className="flex-1 w-full text-center font-bold text-indigo-700 outline-none bg-transparent"
                                   />
-                                  <button onClick={() => setEditQuantity(editQuantity + 1)} className="w-8 h-8 flex items-center justify-center bg-white border border-indigo-200 rounded-md text-indigo-600 font-bold">+</button>
+                                  <button type="button" onClick={() => setEditQuantity(editQuantity + 1)} className="w-8 h-8 flex items-center justify-center text-indigo-600 font-black hover:bg-indigo-50 rounded-lg transition-colors">+</button>
                                 </div>
                               </div>
-                              <div className="flex gap-2 w-full">
-                                <button 
-                                  onClick={handleUpdateOrder} 
-                                  className="flex-1 bg-emerald-500 text-white rounded-lg py-2 font-bold hover:bg-emerald-600 transition-all shadow-md active:scale-95"
-                                >
-                                  Save
-                                </button>
-                                <button 
-                                  onClick={() => setEditingOrderId(null)} 
-                                  className="bg-white text-slate-500 border border-slate-200 rounded-lg px-4 py-2 font-bold hover:bg-slate-50 transition-all active:scale-95"
-                                >
-                                  Cancel
-                                </button>
-                              </div>
                             </div>
-                          ) : (
-                            <>
+
+                            <div className="flex gap-3 pt-2">
+                              <button 
+                                onClick={handleUpdateOrder} 
+                                className="flex-1 bg-indigo-600 text-white rounded-xl py-3 font-bold hover:bg-indigo-700 transition-all shadow-md active:scale-[0.98]"
+                              >
+                                Save Changes
+                              </button>
+                              <button 
+                                onClick={() => setEditingOrderId(null)} 
+                                className="px-6 bg-white text-slate-500 border border-slate-200 rounded-xl font-bold hover:bg-slate-50 transition-all active:scale-[0.98]"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex justify-between items-center p-2.5">
+                            <div className="flex-1 max-w-full overflow-hidden pr-2">
+                              <div className="flex flex-col">
+                                <p className="font-semibold text-slate-800 break-words">
+                                  {o.itemName} 
+                                  {o.quantity > 1 && <span className="ml-1.5 text-indigo-600 font-bold">x{o.quantity}</span>}
+                                </p>
+                              </div>
+                              {o.note && <p className="text-xs text-slate-500 italic mt-0.5 break-words">Note: {o.note}</p>}
+                            </div>
+                            
+                            <div className="flex items-center gap-3 shrink-0">
                               <div className="text-right">
                                 {o.price === 0 ? (
                                   <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-bold uppercase animate-pulse">Waiting for price...</span>
                                 ) : (
                                   <div className="flex flex-col items-end">
-                                    <span className="font-mono text-slate-500 font-bold text-xs opacity-60">
-                                      {o.quantity > 1 ? `${o.quantity} x Rp ${o.price.toLocaleString()}` : ''}
+                                    <span className="font-mono text-slate-500 font-bold text-[10px] opacity-60 leading-none mb-1">
+                                      {o.quantity > 1 ? `${o.quantity} x ${o.price.toLocaleString()}` : ''}
                                     </span>
-                                    <span className="font-mono text-slate-700 font-bold">Rp {(o.price * (o.quantity || 1)).toLocaleString()}</span>
+                                    <span className="font-mono text-slate-700 font-bold leading-none">Rp {(o.price * (o.quantity || 1)).toLocaleString()}</span>
                                   </div>
                                 )}
                               </div>
                               {isHost && (
                                 <button 
                                   onClick={() => startEditingOrder(o)}
-                                  className="w-8 h-8 flex items-center justify-center bg-slate-100 rounded-full text-slate-400 hover:text-white hover:bg-indigo-500 transition-all duration-300"
-                                  title="Edit Price"
+                                  className="w-8 h-8 flex items-center justify-center bg-slate-100 rounded-full text-slate-400 hover:text-white hover:bg-indigo-500 transition-all duration-300 shadow-sm"
+                                  title="Edit Item"
                                 >
                                   ✎
                                 </button>
                               )}
-                            </>
-                          )}
-                        </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     ))}
                     {(p.orders || []).length === 0 && <span className="text-xs text-slate-400 italic">Thinking...</span>}
@@ -667,8 +668,8 @@ export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId,
             {isOrderLocked ? (
               <div className="text-center py-6">
                 <span className="text-4xl mb-3 block">🔒</span>
-                <h2 className="text-slate-800 font-bold mb-2">Pesanan Ditutup</h2>
-                <p className="text-sm text-slate-500">Host telah menutup pesanan.<br/>Tidak bisa menambah item baru.</p>
+                <h2 className="text-slate-800 font-bold mb-2">Orders Closed</h2>
+                <p className="text-sm text-slate-500">Host has closed orders.<br/>Cannot add new items.</p>
               </div>
             ) : (
               <>
