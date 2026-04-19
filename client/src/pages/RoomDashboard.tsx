@@ -152,7 +152,7 @@ export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId,
   const handleAddItem = (e: React.FormEvent) => {
     e.preventDefault();
     if (isOrderLocked) return;
-    if (newItem.trim() && newPrice.trim()) {
+    if (newItem.trim()) {
       const item = { 
         name: newItem, 
         price: Number(newPrice) || 0, 
