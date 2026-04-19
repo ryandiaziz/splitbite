@@ -13,6 +13,7 @@ case class Order(
   participantId: String,
   itemName: String,
   price: Double,
+  quantity: Int,
   note: Option[String]
 )
 

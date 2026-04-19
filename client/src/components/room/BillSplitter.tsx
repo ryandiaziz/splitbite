@@ -14,11 +14,12 @@ export const BillSplitter: React.FC<BillSplitterProps> = ({ room, sessionId }) =
   const netExtra = additionalFees - discount;
 
   const allOrders = room.participants.flatMap((p: any) => p.orders || []);
-  const totalCartValue = allOrders.reduce((a: number, o: any) => a + o.price, 0);
+  const totalCartValue = allOrders.reduce((a: number, o: any) => a + (o.price * (o.quantity || 1)), 0);
   
   const me = room.participants.find((p: any) => p.sessionId === sessionId);
   const myOrders = me?.orders || [];
-  const myTotal = myOrders.reduce((a: number, o: any) => a + o.price, 0);
+  const myTotal = myOrders.reduce((a: number, o: any) => a + (o.price * (o.quantity || 1)), 0);
+  const myTotalItems = myOrders.reduce((a: number, o: any) => a + (o.quantity || 1), 0);
 
   let myShareOfExtra = 0;
   if (totalCartValue > 0) {
@@ -51,7 +52,7 @@ export const BillSplitter: React.FC<BillSplitterProps> = ({ room, sessionId }) =
       
       <div className="space-y-2 text-sm font-medium">
         <div className="flex justify-between">
-          <span className="opacity-80">Your Orders ({myOrders.length} items)</span>
+          <span className="opacity-80">Your Orders ({myTotalItems} items)</span>
           <span>Rp {myTotal.toLocaleString()}</span>
         </div>
         <div className="flex justify-between">
