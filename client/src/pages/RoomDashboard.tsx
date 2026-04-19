@@ -79,6 +79,7 @@ export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId,
   const [newItem, setNewItem] = useState('');
   const [newPrice, setNewPrice] = useState('');
   const [newNote, setNewNote] = useState('');
+  const [newQuantity, setNewQuantity] = useState(1);
   
   const [taxInput, setTaxInput] = useState('');
   const [discountInput, setDiscountInput] = useState('');
@@ -95,6 +96,7 @@ export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId,
   const [editingOrderId, setEditingOrderId] = useState<string | null>(null);
   const [editPrice, setEditPrice] = useState('');
   const [editName, setEditName] = useState('');
+  const [editQuantity, setEditQuantity] = useState(1);
 
   const menuFileRef = useRef<HTMLInputElement>(null);
   const hostReceiptRef = useRef<HTMLInputElement>(null);
@@ -154,12 +156,14 @@ export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId,
       const item = { 
         name: newItem, 
         price: Number(newPrice) || 0, 
+        quantity: newQuantity,
         note: newNote 
       };
       sendMessage({ type: 'ADD_ORDER', data: item });
       setNewItem('');
       setNewPrice('');
       setNewNote('');
+      setNewQuantity(1);
     }
   };
 
@@ -185,6 +189,7 @@ export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId,
     setEditingOrderId(order.id);
     setEditPrice(order.price.toString());
     setEditName(order.itemName);
+    setEditQuantity(order.quantity || 1);
   };
 
   const handleUpdateOrder = () => {
@@ -194,7 +199,8 @@ export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId,
         data: {
           orderId: editingOrderId,
           name: editName,
-          price: Number(editPrice) || 0
+          price: Number(editPrice) || 0,
+          quantity: editQuantity
         }
       });
       setEditingOrderId(null);
@@ -257,7 +263,7 @@ export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId,
     }
   };
 
-  const globalTotal = participants.flatMap((p: any) => p.orders || []).reduce((a: number, o: any) => a + o.price, 0);
+  const globalTotal = participants.flatMap((p: any) => p.orders || []).reduce((a: number, o: any) => a + (o.price * (o.quantity || 1)), 0);
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800">
@@ -535,7 +541,7 @@ export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId,
               
               {participants.filter((p: any) => p.isApproved && !p.isRejected).map((p: any, idx: number) => {
                 const isMe = p.sessionId === sessionId;
-                const pTotal = (p.orders || []).reduce((a: number, o: any) => a + o.price, 0);
+                const pTotal = (p.orders || []).reduce((a: number, o: any) => a + (o.price * (o.quantity || 1)), 0);
                 
                 return (
                 <div key={idx} className={`p-4 rounded-xl border ${isMe ? 'bg-indigo-50/50 border-indigo-200' : 'bg-slate-50 border-slate-200'}`}>
@@ -567,7 +573,12 @@ export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId,
                               />
                             </div>
                           ) : (
-                            <p className="font-semibold text-slate-800 break-words">{o.itemName}</p>
+                            <div className="flex flex-col">
+                              <p className="font-semibold text-slate-800 break-words">
+                                {o.itemName} 
+                                {o.quantity > 1 && <span className="ml-1.5 text-indigo-600 font-bold">x{o.quantity}</span>}
+                              </p>
+                            </div>
                           )}
                           {o.note && <p className="text-xs text-slate-500 italic mt-0.5 break-words">Note: {o.note}</p>}
                         </div>
@@ -584,6 +595,19 @@ export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId,
                                   className="w-32 border-2 border-white rounded-lg px-3 py-2 text-right font-mono font-bold text-indigo-700 focus:border-indigo-400 outline-none transition-all shadow-sm"
                                   placeholder="0"
                                 />
+                              </div>
+                              <div className="w-full">
+                                <label className="block text-[10px] font-bold text-indigo-500 uppercase mb-1">Qty</label>
+                                <div className="flex items-center gap-2">
+                                  <button onClick={() => setEditQuantity(Math.max(1, editQuantity - 1))} className="w-8 h-8 flex items-center justify-center bg-white border border-indigo-200 rounded-md text-indigo-600 font-bold">-</button>
+                                  <input 
+                                    type="number" 
+                                    value={editQuantity} 
+                                    onChange={e => setEditQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                                    className="w-12 border-2 border-white rounded-lg py-1 text-center font-bold text-indigo-700 focus:border-indigo-400 outline-none transition-all shadow-sm"
+                                  />
+                                  <button onClick={() => setEditQuantity(editQuantity + 1)} className="w-8 h-8 flex items-center justify-center bg-white border border-indigo-200 rounded-md text-indigo-600 font-bold">+</button>
+                                </div>
                               </div>
                               <div className="flex gap-2 w-full">
                                 <button 
@@ -606,7 +630,12 @@ export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId,
                                 {o.price === 0 ? (
                                   <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-bold uppercase animate-pulse">Waiting for price...</span>
                                 ) : (
-                                  <span className="font-mono text-slate-500 font-bold">Rp {o.price.toLocaleString()}</span>
+                                  <div className="flex flex-col items-end">
+                                    <span className="font-mono text-slate-500 font-bold text-xs opacity-60">
+                                      {o.quantity > 1 ? `${o.quantity} x Rp ${o.price.toLocaleString()}` : ''}
+                                    </span>
+                                    <span className="font-mono text-slate-700 font-bold">Rp {(o.price * (o.quantity || 1)).toLocaleString()}</span>
+                                  </div>
                                 )}
                               </div>
                               {isHost && (
@@ -645,7 +674,14 @@ export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId,
               <>
                 <h2 className="text-slate-800 font-bold mb-4">Add My Order</h2>
                 <form onSubmit={handleAddItem} className="space-y-3">
-                  <input type="text" value={newItem} onChange={e => setNewItem(e.target.value)} placeholder="Food name..." className="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" required />
+                  <div className="flex gap-2">
+                    <input type="text" value={newItem} onChange={e => setNewItem(e.target.value)} placeholder="Food name..." className="flex-1 rounded-lg border border-slate-300 px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" required />
+                    <div className="flex items-center bg-slate-100 rounded-lg border border-slate-200 px-1">
+                      <button type="button" onClick={() => setNewQuantity(Math.max(1, newQuantity - 1))} className="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-indigo-600 font-bold transition-colors">-</button>
+                      <span className="w-8 text-center text-sm font-bold text-slate-700">{newQuantity}</span>
+                      <button type="button" onClick={() => setNewQuantity(newQuantity + 1)} className="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-indigo-600 font-bold transition-colors">+</button>
+                    </div>
+                  </div>
                   <div className="relative">
                     <input 
                       type="text" 

@@ -71,8 +71,9 @@ class ClientActor(roomId: String, sessionId: String, out: ActorRef, manager: Act
                   if (!room.isOrderLocked && participant.exists(_.isApproved)) {
                     val itemName = (data \ "name").as[String]
                     val price = (data \ "price").asOpt[Double].getOrElse(0.0)
+                    val quantity = (data \ "quantity").asOpt[Int].getOrElse(1)
                     val note = (data \ "note").asOpt[String].filter(_.trim.nonEmpty)
-                    val newOrder = Order(java.util.UUID.randomUUID().toString.take(8), sessionId, itemName, price, note)
+                    val newOrder = Order(java.util.UUID.randomUUID().toString.take(8), sessionId, itemName, price, quantity, note)
 
                     val pIndex = room.participants.indexWhere(_.sessionId == sessionId)
                     if (pIndex >= 0) {
@@ -86,6 +87,7 @@ class ClientActor(roomId: String, sessionId: String, out: ActorRef, manager: Act
                   if (room.hostId == sessionId) {
                     val orderId = (data \ "orderId").as[String]
                     val newPrice = (data \ "price").asOpt[Double]
+                    val newQuantity = (data \ "quantity").asOpt[Int]
                     val newName = (data \ "name").asOpt[String]
 
                     val updatedParticipants = room.participants.map { p =>
@@ -94,6 +96,7 @@ class ClientActor(roomId: String, sessionId: String, out: ActorRef, manager: Act
                         val o = p.orders(oIndex)
                         val updatedOrder = o.copy(
                           price = newPrice.getOrElse(o.price),
+                          quantity = newQuantity.getOrElse(o.quantity),
                           itemName = newName.getOrElse(o.itemName)
                         )
                         p.copy(orders = p.orders.updated(oIndex, updatedOrder))
