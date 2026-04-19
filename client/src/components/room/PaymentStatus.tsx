@@ -36,7 +36,7 @@ export const PaymentStatus: React.FC<PaymentStatusProps> = ({ participant, isHos
         const base64 = canvas.toDataURL('image/jpeg', 0.5);
         onUploadReceipt(base64);
       };
-      img.onerror = () => alert("Gagal memproses gambar.");
+      img.onerror = () => alert("Failed to process image.");
       img.src = URL.createObjectURL(file);
     }
   };
@@ -65,8 +65,8 @@ export const PaymentStatus: React.FC<PaymentStatusProps> = ({ participant, isHos
       </div>
     );
   }
-  if (status === 'paid') return <div className="mt-3 text-right"><span className="text-xs text-amber-600 font-bold px-2 py-1 bg-amber-50 border border-amber-200 rounded">⏳ Waiting Host Verification</span></div>;
-  if (status === 'confirmed') return <div className="mt-3 text-right"><span className="text-xs text-emerald-600 font-bold px-3 py-1 bg-emerald-50 border border-emerald-200 rounded">🥳 Lunas (Confirmed)</span></div>;
+  if (status === 'paid') return <div className="mt-3 text-right"><span className="text-xs text-amber-600 font-bold px-2 py-1 bg-amber-50 border border-amber-200 rounded">⏳ Waiting for Host Verification</span></div>;
+  if (status === 'confirmed') return <div className="mt-3 text-right"><span className="text-xs text-emerald-600 font-bold px-3 py-1 bg-emerald-50 border border-emerald-200 rounded">🥳 Paid (Confirmed)</span></div>;
 
   return null;
 };
