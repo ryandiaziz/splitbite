@@ -1,4 +1,3 @@
-version: '3.8'
 
 services:
   redis:
@@ -20,7 +19,7 @@ services:
       - "9000:9000"
     environment:
       - REDIS_URL=redis://redis:6379
-      - APPLICATION_SECRET=my-application-secret-change-in-prod
+      - APPLICATION_SECRET=splitbite-super-secure-and-long-secret-key-for-production-1234567890
     depends_on:
       - redis
     restart: always
@@ -31,7 +30,7 @@ services:
       dockerfile: Dockerfile
     container_name: splitbite-client
     ports:
-      - "80:80"
+      - "8080:80"
     depends_on:
       - server
     restart: always
