@@ -91,6 +91,8 @@ export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId,
   const [uploadingMenu, setUploadingMenu] = useState(false);
   const [uploadingReceipt, setUploadingReceipt] = useState(false);
   const [showMenuLightbox, setShowMenuLightbox] = useState(false);
+  const [showReceiptLightbox, setShowReceiptLightbox] = useState(false);
+  const [activeReceiptUrl, setActiveReceiptUrl] = useState<string | null>(null);
 
   // Edit order state (Host only)
   const [editingOrderId, setEditingOrderId] = useState<string | null>(null);
@@ -250,6 +252,11 @@ export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId,
       setUploadingReceipt(false);
     }
     if (hostReceiptRef.current) hostReceiptRef.current.value = '';
+  };
+
+  const handleOpenReceiptPreview = (url: string) => {
+    setActiveReceiptUrl(url);
+    setShowReceiptLightbox(true);
   };
 
 
@@ -552,7 +559,13 @@ export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId,
                     <div className="flex items-center gap-4">
                       <span className="text-sm font-semibold text-slate-600">Rp {pTotal.toLocaleString()}</span>
                       {isHost && !isMe && pTotal > 0 && (
-                        <PaymentStatus participant={p} isHost={isHost} onUploadReceipt={handleUploadReceipt} onConfirmPayment={handleConfirmPayment} />
+                        <PaymentStatus 
+                          participant={p} 
+                          isHost={isHost} 
+                          onUploadReceipt={handleUploadReceipt} 
+                          onConfirmPayment={handleConfirmPayment} 
+                          onViewReceipt={handleOpenReceiptPreview}
+                        />
                       )}
                     </div>
                   </div>
@@ -711,13 +724,48 @@ export const RoomDashboard: React.FC<RoomDashboardProps> = ({ roomId, sessionId,
                 isHost={false} 
                 onUploadReceipt={handleUploadReceipt} 
                 onConfirmPayment={handleConfirmPayment} 
+                onViewReceipt={handleOpenReceiptPreview}
              />
           )}
         </div>
       </main>
       )}
 
-      {/* Image Lightbox Modal */}
+      {/* Participant Receipt Lightbox */}
+      {showReceiptLightbox && activeReceiptUrl && (
+        <div 
+          className="fixed inset-0 z-[100] bg-slate-900/90 backdrop-blur-md flex items-center justify-center p-4 sm:p-8 animate-fade-in"
+          onClick={() => {
+            setShowReceiptLightbox(false);
+            setActiveReceiptUrl(null);
+          }}
+        >
+          <button 
+            className="absolute top-6 right-6 text-white bg-white/20 hover:bg-white/30 rounded-full p-3 transition-all active:scale-90"
+            onClick={() => {
+              setShowReceiptLightbox(false);
+              setActiveReceiptUrl(null);
+            }}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          <div className="max-w-4xl w-full flex flex-col items-center gap-4" onClick={(e) => e.stopPropagation()}>
+            <img 
+              src={activeReceiptUrl} 
+              alt="Payment Proof" 
+              className="max-w-full max-h-[80vh] rounded-lg shadow-2xl object-contain animate-scale-in"
+            />
+            <div className="bg-white/10 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/20 text-white text-center">
+              <p className="font-bold">Payment Receipt</p>
+              <p className="text-xs opacity-70">Review the details before verifying.</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Menu Image Lightbox */}
       {showMenuLightbox && lastMessage?.menuImageUrl && (
         <div 
           className="fixed inset-0 z-[100] bg-slate-900/90 backdrop-blur-md flex items-center justify-center p-4 sm:p-8 animate-fade-in"

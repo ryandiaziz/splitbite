@@ -14,7 +14,7 @@ export const HostReceiptViewer: React.FC<HostReceiptViewerProps> = ({ receiptUrl
     <>
       <GlassCard className="p-4 bg-white border border-slate-200 mt-6" intensity="light">
         <h3 className="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
-          <span className="text-base">🧾</span> Kuitansi Asli
+          <span className="text-base">🧾</span> Merchant Receipt
         </h3>
         <button
           onClick={() => setIsExpanded(true)}
@@ -27,7 +27,7 @@ export const HostReceiptViewer: React.FC<HostReceiptViewerProps> = ({ receiptUrl
           />
         </button>
         <p className="text-xs text-slate-400 mt-2 text-center italic">
-          Tap untuk memperbesar
+          Click to enlarge
         </p>
       </GlassCard>
 
