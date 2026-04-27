@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { Button } from '../components/atoms/Button';
 import { GlassCard } from '../components/atoms/GlassCard';
@@ -12,6 +12,7 @@ import { User, ArrowRight, Zap, LogIn } from 'lucide-react';
 export const Home: React.FC = () => {
   console.log('Home Render - Verifying Refresh');
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
   const { myName, sessionId } = useSelector((state: RootState) => state.auth);
   
@@ -21,13 +22,21 @@ export const Home: React.FC = () => {
   const [invitedRoomId, setInvitedRoomId] = useState<string | null>(null);
 
   React.useEffect(() => {
-    const hash = window.location.hash;
-    if (hash.startsWith('#room/')) {
-      const id = hash.replace('#room/', '');
-      setRoomId(id);
-      setInvitedRoomId(id);
+    const searchParams = new URLSearchParams(location.search);
+    const inviteId = searchParams.get('invite');
+    
+    if (inviteId) {
+      setRoomId(inviteId);
+      setInvitedRoomId(inviteId);
+    } else {
+      const hash = window.location.hash;
+      if (hash.startsWith('#room/')) {
+        const id = hash.replace('#room/', '');
+        setRoomId(id);
+        setInvitedRoomId(id);
+      }
     }
-  }, []);
+  }, [location.search]);
 
   const handleJoin = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();

@@ -78,10 +78,17 @@ export const RoomDashboard: React.FC = () => {
   }, [lastMessage, dispatch]);
 
   useEffect(() => {
-    if (isConnected) {
+    if (isConnected && myName && myName.trim().length >= 4) {
       sendMessage({ type: 'JOIN_PARTICIPANT', data: { name: myName }});
     }
   }, [isConnected, sendMessage, myName]);
+
+  // Redirect if user hasn't set a valid name
+  useEffect(() => {
+    if (!myName || myName.trim().length < 4) {
+      navigate(`/?invite=${roomId}`, { replace: true });
+    }
+  }, [myName, navigate, roomId]);
 
   // Handle Room Deletion
   useEffect(() => {
