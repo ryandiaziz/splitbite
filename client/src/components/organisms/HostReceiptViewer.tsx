@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { GlassCard } from '../ui/GlassCard';
+import { GlassCard } from '../atoms/GlassCard';
 
 interface HostReceiptViewerProps {
   receiptUrl?: string;

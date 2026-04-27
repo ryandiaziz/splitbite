@@ -2,19 +2,19 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useWebSocket } from '../hooks/useWebSocket';
-import { GlassCard } from '../components/ui/GlassCard';
-import { Button } from '../components/ui/Button';
-import { BillSplitter } from '../components/room/BillSplitter';
-import { PaymentStatus } from '../components/room/PaymentStatus';
-import { HostReceiptViewer } from '../components/room/HostReceiptViewer';
+import { GlassCard } from '../components/atoms/GlassCard';
+import { Button } from '../components/atoms/Button';
+import { Lightbox } from '../components/atoms/Lightbox';
 
-// New Components
-import { RoomHeader } from '../components/room/RoomHeader';
-import { MenuOverview } from '../components/room/MenuOverview';
-import { HostControls } from '../components/room/HostControls';
-import { GlobalOrderList } from '../components/room/GlobalOrderList';
-import { AddOrderForm } from '../components/room/AddOrderForm';
-import { Lightbox } from '../components/room/Lightbox';
+// Organisms
+import { Header } from '../components/organisms/Header';
+import { MenuOverview } from '../components/organisms/MenuOverview';
+import { HostControls } from '../components/organisms/HostControls';
+import { GlobalOrderList } from '../components/organisms/GlobalOrderList';
+import { AddOrderForm } from '../components/organisms/AddOrderForm';
+import { BillSplitter } from '../components/organisms/BillSplitter';
+import { PaymentStatus } from '../components/organisms/PaymentStatus';
+import { HostReceiptViewer } from '../components/organisms/HostReceiptViewer';
 
 // Utils & Types
 import { RootState } from '../store';
@@ -304,7 +304,7 @@ export const RoomDashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800">
-      <RoomHeader 
+      <Header 
         roomId={roomId || ''} 
         isConnected={isConnected} 
         isHost={isHost} 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { GlassCard } from '../ui/GlassCard';
+import { GlassCard } from '../atoms/GlassCard';
 
 interface BillSplitterProps {
   room: any;

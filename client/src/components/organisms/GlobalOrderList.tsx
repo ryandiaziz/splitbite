@@ -1,5 +1,5 @@
 import React from 'react';
-import { GlassCard } from '../ui/GlassCard';
+import { GlassCard } from '../atoms/GlassCard';
 import { PaymentStatus } from './PaymentStatus';
 import { IParticipant } from '../../types/room.types';
 import { formatIDR } from '../../utils/formatters';

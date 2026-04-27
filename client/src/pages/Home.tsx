@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { Button } from '../components/ui/Button';
-import { GlassCard } from '../components/ui/GlassCard';
+import { Button } from '../components/atoms/Button';
+import { GlassCard } from '../components/atoms/GlassCard';
+import { FormInput } from '../components/molecules/FormInput';
 import { setMyName } from '../store/slices/authSlice';
 import { RootState } from '../store';
 import { roomService } from '../api/roomService';
@@ -34,7 +35,6 @@ export const Home: React.FC = () => {
       dispatch(setMyName(localName.trim()));
       
       try {
-        // Wait a bit for aesthetic delay
         await new Promise(resolve => setTimeout(resolve, 600));
         const data = await roomService.getRoom(finalRoomId);
         if (data.status === 'success') {
@@ -56,7 +56,6 @@ export const Home: React.FC = () => {
       dispatch(setMyName(localName.trim()));
       
       try {
-        // Wait a bit for aesthetic delay
         await new Promise(resolve => setTimeout(resolve, 600));
         const data = await roomService.createRoom(sessionId, type);
         if (data.status === 'success' && data.roomId) {
@@ -72,9 +71,13 @@ export const Home: React.FC = () => {
     }
   }
 
+  const nameError = localName.trim().length > 0 && localName.trim().length < 4 
+    ? "Min. 4 characters required!" 
+    : undefined;
+
   return (
     <div className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-6 animate-gradient overflow-hidden">
-      {/* Decorative Blob */}
+      {/* Decorative Blobs */}
       <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob"></div>
       <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-pink-300 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob animation-delay-2000"></div>
 
@@ -91,30 +94,24 @@ export const Home: React.FC = () => {
               </div>
             ) : (
               <p className="text-xl text-slate-600 mb-8 max-w-2xl mx-auto">
-                No logins. No downloads. Just create a temporary room, invite your friends, order food together, and we do the complex split bill math.
+                No logins. No downloads. Simple bill splitting for everyone.
               </p>
             )}
           </div>
 
           <div className="mb-10 text-left bg-white/50 p-6 rounded-2xl shadow-sm border border-white/50">
-            <label className="block text-sm font-semibold text-slate-700 mb-2">Welcome! What should we call you?</label>
-            <input 
-              type="text" 
-              value={localName} 
-              onChange={(e) => {
-                setLocalName(e.target.value);
-              }}
-              placeholder="e.g., Alex" 
-              className="w-full p-3 border-2 border-indigo-200 rounded-xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 text-indigo-900 font-bold outline-none transition-all" 
+            <FormInput 
+              label="Welcome! What should we call you?"
+              value={localName}
+              onChange={(e) => setLocalName(e.target.value)}
+              placeholder="e.g., Alex"
               minLength={4}
+              error={nameError}
             />
-            {localName.trim().length > 0 && localName.trim().length < 4 && (
-              <p className="text-xs text-rose-500 font-bold mt-2 animate-pulse">Min. 4 characters required!</p>
-            )}
           </div>
 
           {!localName.trim() || localName.trim().length < 4 ? (
-            <p className="text-indigo-900 font-medium animate-pulse">👆 Please enter your nickname (min. 4 chars) to continue!</p>
+            <p className="text-indigo-900 font-medium animate-pulse">👆 Please enter your nickname to continue!</p>
           ) : (
             <>
               <div className="space-y-4 mb-8">
@@ -128,17 +125,15 @@ export const Home: React.FC = () => {
                     Join Room Now
                    </Button>
                 ) : (
-                  <>
-                    <Button 
-                      variant="primary" 
-                      className="w-full text-lg py-4 shadow-pink-500/20" 
-                      onClick={() => handleCreate('image')}
-                      isLoading={isLoading}
-                      disabled={localName.trim().length < 4}
-                    >
-                      Start Quick Menu (Image)
-                    </Button>
-                  </>
+                  <Button 
+                    variant="primary" 
+                    className="w-full text-lg py-4 shadow-pink-500/20" 
+                    onClick={() => handleCreate('image')}
+                    isLoading={isLoading}
+                    disabled={!!nameError}
+                  >
+                    Start Quick Menu (Image)
+                  </Button>
                 )}
               </div>
 
@@ -157,7 +152,7 @@ export const Home: React.FC = () => {
                   onChange={(e) => setRoomId(e.target.value)}
                   required
                 />
-                <Button type="submit" variant="primary" disabled={isLoading || !roomId.trim() || localName.trim().length < 4} className="w-full sm:w-auto">
+                <Button type="submit" variant="primary" disabled={isLoading || !roomId.trim() || !!nameError} className="w-full sm:w-auto">
                   Join
                 </Button>
               </form>

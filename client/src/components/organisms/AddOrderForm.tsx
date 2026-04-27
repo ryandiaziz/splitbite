@@ -1,6 +1,6 @@
 import React from 'react';
-import { GlassCard } from '../ui/GlassCard';
-import { Button } from '../ui/Button';
+import { GlassCard } from '../atoms/GlassCard';
+import { Button } from '../atoms/Button';
 import { formatIDR, parseIDR } from '../../utils/formatters';
 
 interface AddOrderFormProps {
