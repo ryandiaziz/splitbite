@@ -1,11 +1,16 @@
-import { useState, useEffect } from 'react'
-import { Home } from './pages/Home'
-import { RoomDashboard } from './pages/RoomDashboard'
+import { useEffect } from 'react';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { Home } from './pages/Home';
+import { RoomDashboard } from './pages/RoomDashboard';
+import { setSessionId } from './store/slices/authSlice';
+import { RootState } from './store';
 
 function App() {
-  const [currentRoom, setCurrentRoom] = useState<string | null>(null);
-  const [sessionId, setSessionId] = useState<string>('');
-  const [myName, setMyName] = useState<string>(localStorage.getItem('splitbite_name') || '');
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { sessionId, myName } = useSelector((state: RootState) => state.auth);
 
   useEffect(() => {
     let sid = localStorage.getItem('splitbite_session');
@@ -13,97 +18,26 @@ function App() {
       sid = "user_" + Math.random().toString(36).substring(2, 12);
       localStorage.setItem('splitbite_session', sid);
     }
-    setSessionId(sid);
-  }, []);
+    dispatch(setSessionId(sid));
+  }, [dispatch]);
 
+  // Handle legacy hash routing or direct navigation checks
   useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash;
-      if (hash.startsWith('#room/')) {
-        const id = hash.replace('#room/', '');
-        if (id !== currentRoom && myName.trim()) handleJoinRoom(id);
-      } else {
-        setCurrentRoom(null);
-      }
-    };
-    
-    if (window.location.hash && myName.trim()) {
-      handleHashChange();
+    if (window.location.hash.startsWith('#room/')) {
+      const roomId = window.location.hash.replace('#room/', '');
+      window.location.hash = ''; // Clear hash
+      navigate(`/room/${roomId}`);
     }
-
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
-  }, [currentRoom, myName]);
-
-  const handleSetName = (name: string) => {
-    setMyName(name);
-    localStorage.setItem('splitbite_name', name);
-  };
-
-  const handleJoinRoom = async (roomId: string) => {
-    try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:9000';
-      const res = await fetch(`${apiUrl}/api/room/${roomId}`);
-      if (!res.ok) throw new Error('Room not found');
-      const data = await res.json();
-      if (data.status === 'success') {
-        setCurrentRoom(roomId);
-        window.location.hash = `room/${roomId}`;
-        return true;
-      } else {
-        alert(data.message || 'Room not found');
-        window.location.hash = '';
-        return false;
-      }
-    } catch (err) {
-      alert('Failed to connect to server or room does not exist.');
-      window.location.hash = '';
-      return false;
-    }
-  };
-
-  const handleCreateRoom = async (type: 'image' | 'structured') => {
-    if (!sessionId) return false;
-    try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:9000';
-      const res = await fetch(`${apiUrl}/api/room/create`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ hostId: sessionId, roomType: type })
-      });
-      const data = await res.json();
-      if (data.status === 'success' && data.roomId) {
-        setCurrentRoom(data.roomId);
-        window.location.hash = `room/${data.roomId}`;
-        return true;
-      } else {
-        alert(data.message || 'Failed to create room');
-        return false;
-      }
-    } catch (err) {
-      alert('Failed to connect to server. Ensure Backend is running.');
-      return false;
-    }
-  };
-
-  const handleLeaveRoom = () => {
-    setCurrentRoom(null);
-    window.location.hash = '';
-  };
+  }, [navigate]);
 
   if (!sessionId) return null; // Wait for identity
 
   return (
-    <>
-      {currentRoom && myName.trim() ? (
-        <RoomDashboard roomId={currentRoom} sessionId={sessionId} myName={myName} onLeave={handleLeaveRoom} />
-      ) : (
-        <Home onJoinRoom={handleJoinRoom} onCreateRoom={handleCreateRoom} myName={myName} onSetName={handleSetName} />
-      )}
-    </>
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/room/:roomId" element={<RoomDashboard />} />
+    </Routes>
   );
 }
 
-export default App
+export default App;
