@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import { Button } from '../components/ui/Button';
 import { GlassCard } from '../components/ui/GlassCard';
+import { setMyName } from '../store/slices/authSlice';
+import { RootState } from '../store';
+import { roomService } from '../api/roomService';
 
-export const Home: React.FC<{ 
-  onJoinRoom: (id: string) => Promise<boolean>, 
-  onCreateRoom: (type: 'image' | 'structured') => Promise<boolean>,
-  myName: string,
-  onSetName: (name: string) => void
-}> = ({ onJoinRoom, onCreateRoom, myName, onSetName }) => {
+export const Home: React.FC = () => {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { myName, sessionId } = useSelector((state: RootState) => state.auth);
+  
   const [roomId, setRoomId] = useState('');
   const [localName, setLocalName] = useState(myName);
   const [isLoading, setIsLoading] = useState(false);
@@ -22,27 +26,49 @@ export const Home: React.FC<{
     }
   }, []);
 
-  const handleJoin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleJoin = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     const finalRoomId = roomId || invitedRoomId;
     if (localName.trim() && finalRoomId) {
       setIsLoading(true);
-      onSetName(localName.trim());
-      // Wait a bit for aesthetic delay
-      await new Promise(resolve => setTimeout(resolve, 600));
-      await onJoinRoom(finalRoomId);
-      setIsLoading(false);
+      dispatch(setMyName(localName.trim()));
+      
+      try {
+        // Wait a bit for aesthetic delay
+        await new Promise(resolve => setTimeout(resolve, 600));
+        const data = await roomService.getRoom(finalRoomId);
+        if (data.status === 'success') {
+          navigate(`/room/${finalRoomId}`);
+        } else {
+          alert(data.message || 'Room not found');
+        }
+      } catch (err) {
+        alert('Failed to connect to server or room does not exist.');
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
   const handleCreate = async (type: 'image' | 'structured') => {
-    if (localName.trim()) {
+    if (localName.trim() && sessionId) {
       setIsLoading(true);
-      onSetName(localName.trim());
-      // Wait a bit for aesthetic delay
-      await new Promise(resolve => setTimeout(resolve, 600));
-      await onCreateRoom(type);
-      setIsLoading(false);
+      dispatch(setMyName(localName.trim()));
+      
+      try {
+        // Wait a bit for aesthetic delay
+        await new Promise(resolve => setTimeout(resolve, 600));
+        const data = await roomService.createRoom(sessionId, type);
+        if (data.status === 'success' && data.roomId) {
+          navigate(`/room/${data.roomId}`);
+        } else {
+          alert(data.message || 'Failed to create room');
+        }
+      } catch (err) {
+        alert('Failed to connect to server. Ensure Backend is running.');
+      } finally {
+        setIsLoading(false);
+      }
     }
   }
 
@@ -96,7 +122,7 @@ export const Home: React.FC<{
                    <Button 
                     variant="primary" 
                     className="w-full text-lg py-5 shadow-indigo-500/20" 
-                    onClick={handleJoin}
+                    onClick={() => handleJoin()}
                     isLoading={isLoading}
                    >
                     Join Room Now
