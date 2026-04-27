@@ -5,6 +5,7 @@ import { useWebSocket } from '../hooks/useWebSocket';
 import { GlassCard } from '../components/atoms/GlassCard';
 import { Button } from '../components/atoms/Button';
 import { Lightbox } from '../components/atoms/Lightbox';
+import { ShieldAlert, Smile, Loader2 } from 'lucide-react';
 
 // Organisms
 import { Header } from '../components/organisms/Header';
@@ -243,12 +244,9 @@ export const RoomDashboard: React.FC = () => {
   if (!currentRoom) {
     return (
       <div className="flex-1 flex items-center justify-center p-6 min-h-screen">
-         <div className="flex flex-col items-center gap-3 text-indigo-600 font-semibold">
-            <svg className="animate-spin h-10 w-10" viewBox="0 0 24 24">
-               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
-               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <span>Loading room...</span>
+         <div className="flex flex-col items-center gap-4 text-[var(--brand-primary)] font-bold uppercase tracking-widest">
+            <Loader2 className="animate-spin h-10 w-10 opacity-40" />
+            <span className="text-[10px]">Initializing Session</span>
          </div>
       </div>
     );
@@ -266,13 +264,13 @@ export const RoomDashboard: React.FC = () => {
     return (
       <div className="flex-1 flex items-center justify-center p-6 min-h-screen">
         <GlassCard className="max-w-md w-full p-10 text-center border-rose-200 bg-rose-50/30">
-          <div className="text-6xl mb-6">🚫</div>
-          <h2 className="text-2xl font-bold text-rose-800 mb-4">Access Denied</h2>
-          <p className="text-slate-600 mb-8">
-            Sorry, your request to join was denied by the Host. 
+          <ShieldAlert className="w-16 h-16 text-rose-500 mx-auto mb-6 opacity-80" />
+          <h2 className="text-2xl font-bold text-rose-800 mb-4 tracking-tight">Access Denied</h2>
+          <p className="text-slate-600 mb-8 leading-relaxed">
+            Sorry, your request to join this session was denied by the Host.
           </p>
-          <Button variant="primary" className="w-full" onClick={handleLeave}>
-            Back to Home
+          <Button variant="primary" className="w-full py-4 text-xs font-bold uppercase tracking-widest" onClick={handleLeave}>
+            Return to Home
           </Button>
         </GlassCard>
       </div>
@@ -282,18 +280,15 @@ export const RoomDashboard: React.FC = () => {
   if (!isApproved) {
     return (
       <div className="flex-1 flex items-center justify-center p-6 min-h-screen">
-         <GlassCard className="max-w-md w-full p-10 text-center animate-pulse">
-            <div className="text-6xl mb-6">👋</div>
-            <h2 className="text-2xl font-bold text-slate-800 mb-4">Hello, {myName}!</h2>
-            <p className="text-slate-600 mb-8">
-              Please wait! the Host is checking your join request. 
+         <GlassCard className="max-w-md w-full p-10 text-center">
+            <Smile className="w-16 h-16 text-[var(--brand-primary)] mx-auto mb-6 opacity-80" />
+            <h2 className="text-2xl font-bold text-slate-800 mb-4 tracking-tight">Hello, {myName}!</h2>
+            <p className="text-slate-600 mb-8 leading-relaxed">
+              We've sent your request. Please wait while the Host verifies your identity.
             </p>
-            <div className="flex items-center justify-center gap-3 text-indigo-600 font-semibold">
-              <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
-                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              <span>Waiting for approval...</span>
+            <div className="flex items-center justify-center gap-3 text-[var(--brand-primary)] font-bold uppercase tracking-widest">
+              <Loader2 className="animate-spin h-4 w-4" />
+              <span className="text-[10px]">Awaiting Approval</span>
             </div>
          </GlassCard>
       </div>

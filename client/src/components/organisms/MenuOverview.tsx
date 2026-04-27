@@ -1,4 +1,5 @@
 import React from 'react';
+import { Camera, FileText, ZoomIn, Loader2 } from 'lucide-react';
 
 interface MenuOverviewProps {
   menuImageUrl?: string;
@@ -19,47 +20,59 @@ export const MenuOverview: React.FC<MenuOverviewProps> = ({
 }) => {
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-      <h2 className="text-lg font-bold text-slate-800 mb-4">Menu Overview</h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-lg font-bold text-slate-800 tracking-tight leading-none">Menu Overview</h2>
+        {!menuImageUrl && !uploadingMenu && (
+           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Waiting for content</span>
+        )}
+      </div>
       
       {uploadingMenu ? (
-        <div className="aspect-video bg-indigo-50 rounded-xl border-2 border-indigo-300 flex flex-col items-center justify-center text-indigo-500 animate-pulse">
-          <svg className="animate-spin h-8 w-8 mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-          <span className="font-semibold text-sm">Uploading menu...</span>
+        <div className="aspect-video bg-slate-50 rounded-2xl border-2 border-indigo-100 flex flex-col items-center justify-center text-indigo-500 animate-pulse">
+          <Loader2 className="animate-spin h-8 w-8 mb-3 opacity-40" />
+          <span className="font-bold text-[10px] uppercase tracking-widest">Uploading menu...</span>
         </div>
       ) : menuImageUrl ? (
         <div className="relative group cursor-zoom-in" onClick={onShowLightbox}>
           <img
             src={menuImageUrl}
             alt="Menu"
-            className="w-full rounded-xl border border-slate-200 object-contain max-h-[480px] transition-transform hover:scale-[1.01]"
+            className="w-full rounded-2xl border border-slate-100 object-contain max-h-[480px] transition-all duration-500 group-hover:brightness-[0.9] group-hover:shadow-xl"
           />
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
-            <span className="bg-white/90 px-4 py-2 rounded-full text-xs font-bold shadow-lg">Click to Preview</span>
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
+            <div className="bg-white/90 backdrop-blur-sm px-5 py-2.5 rounded-2xl flex items-center gap-2 shadow-2xl border border-white/20 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+              <ZoomIn className="w-4 h-4 text-indigo-600" />
+              <span className="text-[10px] font-bold text-slate-700 uppercase tracking-widest">Preview Full Menu</span>
+            </div>
           </div>
         </div>
       ) : isHost ? (
         <div
           onClick={onUploadClick}
-          className="aspect-video bg-slate-50 rounded-xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-400 cursor-pointer hover:border-indigo-400 hover:text-indigo-500 hover:bg-indigo-50/30 transition-all duration-200"
+          className="aspect-video bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-slate-400 cursor-pointer hover:border-indigo-300 hover:text-indigo-500 hover:bg-indigo-50/30 transition-all duration-300 group"
         >
-          <span className="text-3xl mb-2">📷</span>
-          <span className="font-semibold text-sm">Click to upload menu photo</span>
-          <span className="text-xs mt-1 opacity-70">Max 1 MB • PNG, JPG, WebP</span>
+          <div className="w-16 h-16 bg-white rounded-3xl flex items-center justify-center mb-4 border border-slate-100 shadow-sm group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
+            <Camera className="w-8 h-8 opacity-40" />
+          </div>
+          <span className="font-bold text-[10px] uppercase tracking-widest">Click to upload menu photo</span>
+          <span className="text-[9px] mt-2 opacity-50 uppercase tracking-widest font-bold">Max 5 MB • PNG, JPG, WebP</span>
         </div>
       ) : (
-        <div className="aspect-video bg-slate-50 rounded-xl border-2 border-dashed border-slate-300 flex items-center justify-center text-slate-400">
-          <span className="text-sm italic">Waiting for host to upload menu...</span>
+        <div className="aspect-video bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-slate-300">
+          <Camera className="w-10 h-10 mb-4 opacity-20" />
+          <span className="text-[10px] font-bold uppercase tracking-widest">Waiting for host to upload menu</span>
         </div>
       )}
 
       {/* Menu description */}
       {menuDescription && (
-        <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-xl">
-          <p className="text-xs font-bold text-amber-700 uppercase tracking-wider mb-1">📝 Notes from Host</p>
-          <p className="text-sm text-amber-900 whitespace-pre-wrap">{menuDescription}</p>
+        <div className="mt-6 p-4 bg-slate-50 border border-slate-100 rounded-2xl relative overflow-hidden group">
+          <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500/20 group-hover:bg-indigo-500 transition-colors" />
+          <div className="flex items-center gap-2 mb-2">
+             <FileText className="w-3.5 h-3.5 text-slate-400" />
+             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Host Notification</p>
+          </div>
+          <p className="text-sm text-slate-600 leading-relaxed font-medium">{menuDescription}</p>
         </div>
       )}
     </div>

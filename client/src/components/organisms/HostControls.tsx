@@ -3,6 +3,7 @@ import { GlassCard } from '../atoms/GlassCard';
 import { Button } from '../atoms/Button';
 import { formatIDR, parseIDR } from '../../utils/formatters';
 import { IParticipant } from '../../types/room.types';
+import { Camera, Loader2, Receipt, Unlock, Lock, Trash2, Check, Settings, UserPlus, FileText, CreditCard } from 'lucide-react';
 
 interface HostControlsProps {
   participants: IParticipant[];
@@ -50,30 +51,38 @@ export const HostControls: React.FC<HostControlsProps> = ({
   const joinRequests = participants.filter((p) => !p.isApproved && !p.isRejected);
 
   return (
-    <GlassCard className="p-6 bg-white border border-amber-200 shadow-amber-100/50" intensity="light">
-      <h2 className="text-lg font-bold text-slate-800 mb-5 text-indigo-600">Host Dashboard</h2>
+    <GlassCard className="p-6 bg-white border border-slate-200 shadow-sm" intensity="light">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center border border-slate-200">
+           <Settings className="w-5 h-5 text-slate-500" />
+        </div>
+        <div>
+          <h2 className="text-lg font-bold text-slate-800 tracking-tight leading-none mb-1">Host Dashboard</h2>
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Management Console</p>
+        </div>
+      </div>
 
       {/* Join Requests */}
       {joinRequests.length > 0 && (
-        <div className="mb-6 bg-indigo-50/50 rounded-xl border border-indigo-100 p-4">
-          <h3 className="text-sm font-bold text-indigo-700 uppercase tracking-wider mb-3 flex items-center gap-2">
-            <span className="flex h-2 w-2 rounded-full bg-indigo-600 animate-ping"></span>
+        <div className="mb-8 bg-slate-50 rounded-2xl border border-slate-200 p-5">
+          <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+            <UserPlus className="w-3.5 h-3.5 text-[var(--brand-primary)]" />
             Join Requests ({joinRequests.length})
           </h3>
           <div className="space-y-3">
             {joinRequests.map((p) => (
-              <div key={p.sessionId} className="flex flex-col xs:flex-row items-center justify-between bg-white p-3 rounded-lg border border-indigo-100 shadow-sm gap-3">
-                <span className="font-bold text-slate-700">{p.name}</span>
-                <div className="flex gap-2 w-full xs:w-auto">
+              <div key={p.sessionId} className="flex items-center justify-between bg-white p-3.5 rounded-xl border border-slate-100 shadow-sm gap-4">
+                <span className="font-bold text-slate-700 text-sm">{p.name}</span>
+                <div className="flex gap-2">
                   <button 
                     onClick={() => onApprove(p.sessionId)}
-                    className="flex-1 xs:flex-none bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-4 py-2 rounded-md transition-colors"
+                    className="bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] font-bold px-4 py-2 rounded-lg transition-colors uppercase tracking-wider"
                   >
                     Approve
                   </button>
                   <button 
                     onClick={() => onReject(p.sessionId)}
-                    className="flex-1 xs:flex-none bg-rose-100 hover:bg-rose-200 text-rose-600 text-xs font-bold px-4 py-2 rounded-md transition-colors"
+                    className="bg-slate-100 hover:bg-rose-100 text-slate-500 hover:text-rose-600 text-[10px] font-bold px-4 py-2 rounded-lg transition-colors uppercase tracking-wider"
                   >
                     Reject
                   </button>
@@ -84,83 +93,93 @@ export const HostControls: React.FC<HostControlsProps> = ({
         </div>
       )}
 
-      {/* Menu description input */}
-      <div className="mb-5">
-        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Menu Notes</label>
-        <div className="flex flex-col sm:flex-row gap-2">
-          <textarea
-            value={menuDescInput}
-            onChange={e => setMenuDescInput(e.target.value)}
-            placeholder="e.g. Nasi goreng sold out, promo buy 2 get 1..."
-            rows={2}
-            className="flex-1 rounded-lg border border-slate-300 px-4 py-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none resize-none"
-          />
-          <Button variant="secondary" size="sm" onClick={onMenuDescUpdate} className="w-full sm:w-auto h-fit">Update</Button>
-        </div>
-      </div>
-
-      {/* Re-upload menu button */}
-      {hasMenuImage && (
-        <div className="mb-5">
-          <Button variant="secondary" size="sm" onClick={onMenuFileClick}>
-            📷 Change Menu Photo
-          </Button>
-        </div>
-      )}
-
-      {/* Billing */}
-      <div className="mb-5">
-        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Billing</label>
-        <div className="flex flex-col sm:flex-row gap-4 items-end">
-          <div className="w-full sm:flex-1">
-            <label className="block text-[10px] text-slate-400 mb-1">Tax / Delivery</label>
-            <input type="text" value={formatIDR(taxInput)} onChange={e => setTaxInput(parseIDR(e.target.value))} placeholder="e.g. 15.000" className="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none" />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+        {/* Menu Notes */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <FileText className="w-3.5 h-3.5 text-slate-400" />
+            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Session Notes</label>
           </div>
-          <div className="w-full sm:flex-1">
-            <label className="block text-[10px] text-slate-400 mb-1">Total Discount</label>
-            <input type="text" value={formatIDR(discountInput)} onChange={e => setDiscountInput(parseIDR(e.target.value))} placeholder="e.g. 0" className="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none" />
+          <div className="flex flex-col gap-2">
+            <textarea
+              value={menuDescInput}
+              onChange={e => setMenuDescInput(e.target.value)}
+              placeholder="Add info about the menu or venue..."
+              rows={3}
+              className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:ring-4 focus:ring-indigo-50 focus:border-indigo-500 outline-none resize-none transition-all placeholder:text-slate-400 bg-slate-50/30"
+            />
+            <Button variant="secondary" size="sm" onClick={onMenuDescUpdate} className="text-[10px] font-bold uppercase tracking-widest border-slate-200">Update Notes</Button>
           </div>
-          <Button variant="primary" size="sm" onClick={onUpdateFees} className="w-full sm:w-auto">Apply</Button>
-        </div>
-      </div>
-
-      {/* Host receipt upload */}
-      <div className="mb-5">
-        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Original Receipt</label>
-        <div className="flex items-center gap-3">
-          <Button variant="secondary" size="sm" disabled={uploadingReceipt} onClick={onHostReceiptClick}>
-            {uploadingReceipt ? '⏳ Uploading...' : `🧾 ${hasHostReceipt ? 'Change Receipt' : 'Upload Receipt'}`}
-          </Button>
-          {hasHostReceipt && (
-            <span className="text-xs text-emerald-600 font-semibold">✓ Uploaded</span>
+          {hasMenuImage && (
+            <Button variant="secondary" size="sm" onClick={onMenuFileClick} className="w-full text-[10px] font-bold uppercase tracking-widest gap-2 border-slate-200">
+              <Camera className="w-3.5 h-3.5" /> Re-upload Photo
+            </Button>
           )}
         </div>
+
+        {/* Billing */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <CreditCard className="w-3.5 h-3.5 text-slate-400" />
+            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Fees & Billing</label>
+          </div>
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[9px] font-bold text-slate-400 mb-1.5 uppercase tracking-wider ml-1">Tax / Delivery</label>
+                <input type="text" value={formatIDR(taxInput)} onChange={e => setTaxInput(parseIDR(e.target.value))} placeholder="0" className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-mono font-bold focus:ring-4 focus:ring-indigo-50 focus:border-indigo-500 outline-none transition-all" />
+              </div>
+              <div>
+                <label className="block text-[9px] font-bold text-slate-400 mb-1.5 uppercase tracking-wider ml-1">Discount</label>
+                <input type="text" value={formatIDR(discountInput)} onChange={e => setDiscountInput(parseIDR(e.target.value))} placeholder="0" className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-mono font-bold focus:ring-4 focus:ring-indigo-50 focus:border-indigo-500 outline-none transition-all" />
+              </div>
+            </div>
+            <Button variant="primary" size="sm" onClick={onUpdateFees} className="w-full py-2.5 text-[10px] font-bold uppercase tracking-widest">Recalculate Totals</Button>
+            
+            <div className="pt-2">
+               <label className="block text-[9px] font-bold text-slate-400 mb-2 uppercase tracking-wider ml-1">Session Receipt</label>
+               <div className="flex items-center gap-3">
+                <Button variant="secondary" size="sm" disabled={uploadingReceipt} onClick={onHostReceiptClick} className="text-[10px] font-bold uppercase tracking-widest gap-2 border-slate-200 py-2.5">
+                  {uploadingReceipt ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Receipt className="w-3.5 h-3.5" />}
+                  {hasHostReceipt ? 'Update Receipt' : 'Upload Receipt'}
+                </Button>
+                {hasHostReceipt && (
+                  <div className="bg-emerald-50 text-emerald-600 p-2 rounded-lg border border-emerald-100">
+                    <Check className="w-3.5 h-3.5" />
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Lock / Unlock Orders */}
-      <div className="pt-4 border-t border-amber-200/60">
-        <button
-          onClick={onToggleLock}
-          className={`w-full py-3 px-4 rounded-xl font-bold text-sm transition-all duration-200 ${
-            isOrderLocked
-              ? 'bg-emerald-100 text-emerald-700 border-2 border-emerald-300 hover:bg-emerald-200'
-              : 'bg-rose-100 text-rose-700 border-2 border-rose-300 hover:bg-rose-200'
-          }`}
-        >
-          {isOrderLocked ? '🔓 Re-open Orders' : '🔒 Lock Orders'}
-        </button>
-        <div className="mt-3 pt-3 border-t border-amber-200/40">
-           <Button 
-            variant="secondary" 
-            className="w-full bg-rose-50 text-rose-600 border-rose-200 hover:bg-rose-100" 
-            size="sm"
+      {/* Status Controls */}
+      <div className="pt-6 border-t border-slate-100">
+        <div className="flex flex-col sm:flex-row gap-3">
+          <button
+            onClick={onToggleLock}
+            className={`flex-1 py-3.5 px-6 rounded-2xl font-bold text-[11px] uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 border-2 ${
+              isOrderLocked
+                ? 'bg-emerald-50 text-emerald-600 border-emerald-100 hover:bg-emerald-100'
+                : 'bg-rose-50 text-rose-600 border-rose-100 hover:bg-rose-100 shadow-sm'
+            }`}
+          >
+            {isOrderLocked ? <Unlock className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
+            {isOrderLocked ? 'Re-open Orders' : 'Finalize & Lock Orders'}
+          </button>
+          
+          <button 
             onClick={onCloseRoom}
-           >
-            🗑️ Close Room & Delete Data
-           </Button>
+            className="px-6 py-3.5 bg-slate-50 text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 hover:border-rose-200 rounded-2xl transition-all duration-300 group"
+          >
+            <Trash2 className="w-4 h-4 transition-transform group-hover:scale-110" />
+          </button>
         </div>
-        <p className="text-xs text-slate-400 text-center mt-1.5">
-          {isOrderLocked ? 'Participants cannot add/edit orders right now.' : 'Click to lock once everyone has finished ordering.'}
+        <p className="text-[10px] text-slate-400 text-center mt-3 font-medium italic opacity-70">
+          {isOrderLocked 
+            ? 'The session is currently locked. Participants cannot edit their orders.' 
+            : 'Lock the session once all orders have been submitted to prevent further changes.'}
         </p>
       </div>
     </GlassCard>
