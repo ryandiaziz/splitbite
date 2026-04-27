@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { Home } from './pages/Home';
 import { RoomDashboard } from './pages/RoomDashboard';
@@ -9,8 +9,7 @@ import { RootState } from './store';
 function App() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const location = useLocation();
-  const { sessionId, myName } = useSelector((state: RootState) => state.auth);
+  const { sessionId } = useSelector((state: RootState) => state.auth);
 
   useEffect(() => {
     let sid = localStorage.getItem('splitbite_session');

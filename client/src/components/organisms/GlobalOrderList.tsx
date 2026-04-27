@@ -2,9 +2,29 @@ import React from 'react';
 import { GlassCard } from '../atoms/GlassCard';
 import { Button } from '../atoms/Button';
 import { PaymentStatus } from './PaymentStatus';
-import { IParticipant } from '../../types/room.types';
+import { IParticipant, IOrder } from '../../types/room.types';
 import { formatIDR } from '../../utils/formatters';
 import { Pencil, User as UserIcon, Receipt, AlertCircle } from 'lucide-react';
+
+interface GlobalOrderListProps {
+  participants: IParticipant[];
+  sessionId: string;
+  isHost: boolean;
+  globalTotal: number;
+  editingOrderId: string | null;
+  editName: string;
+  setEditName: (name: string) => void;
+  editPrice: string;
+  setEditPrice: (price: string) => void;
+  editQuantity: number;
+  setEditQuantity: (quantity: number) => void;
+  onStartEdit: (order: IOrder) => void;
+  onUpdateOrder: () => void;
+  onCancelEdit: () => void;
+  onUploadReceipt: (base64: string) => void;
+  onConfirmPayment: (sessionId: string) => void;
+  onViewReceipt: (url: string) => void;
+}
 
 export const GlobalOrderList: React.FC<GlobalOrderListProps> = ({
   participants,
