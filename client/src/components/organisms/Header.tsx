@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from '../atoms/Button';
 import { RoomIdBadge } from '../molecules/RoomIdBadge';
 import { formatTimeLeft } from '../../utils/formatters';
-import { Lock, Crown, Activity } from 'lucide-react';
+import { Lock, Crown } from 'lucide-react';
 
 interface HeaderProps {
   roomId: string;
