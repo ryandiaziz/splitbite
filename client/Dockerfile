@@ -10,10 +10,12 @@ RUN npm install
 # Copy source files
 COPY . .
 
-# Build the app with default localhost API URL if not provided
-# Note: In Vite, env vars must be available at build time
-ARG VITE_API_URL=http://localhost:9000
+# Build the app with provided environment variables
+ARG VITE_API_URL
+ARG VITE_WS_URL
 ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_WS_URL=$VITE_WS_URL
+
 RUN npm run build
 
 # Stage 2: Serve the app with Nginx
