@@ -9,6 +9,7 @@ import { RootState } from '../store';
 import { roomService } from '../api/roomService';
 
 export const Home: React.FC = () => {
+  console.log('Home Render - Verifying Refresh');
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { myName, sessionId } = useSelector((state: RootState) => state.auth);
@@ -76,21 +77,21 @@ export const Home: React.FC = () => {
     : undefined;
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-6 animate-gradient overflow-hidden">
+    <div className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-[var(--brand-primary)] via-[var(--brand-secondary)] to-[var(--brand-accent)] p-6 overflow-hidden">
       {/* Decorative Blobs */}
-      <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob"></div>
-      <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-pink-300 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob animation-delay-2000"></div>
+      <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-[var(--brand-secondary)]/30 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob"></div>
+      <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-[var(--brand-accent)]/30 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob animation-delay-2000"></div>
 
       <div className="relative z-10 w-full max-w-md animate-fade-in-up">
         <GlassCard className="p-10 text-center">
           <div className="mb-10">
-            <h1 className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-pink-600 mb-4 drop-shadow-sm">
+            <h1 className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-[var(--brand-primary-dark)] to-[var(--brand-accent-dark)] mb-4 drop-shadow-sm">
               SplitBite.
             </h1>
             {invitedRoomId ? (
-              <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-xl mb-6 animate-fade-in">
-                <p className="text-indigo-800 font-semibold mb-1">You're invited to join room:</p>
-                <div className="text-2xl font-mono font-bold text-indigo-600 tracking-wider">#{invitedRoomId}</div>
+              <div className="bg-[var(--brand-primary)]/10 border border-[var(--brand-primary)]/20 p-4 rounded-xl mb-6 animate-fade-in">
+                <p className="text-[var(--brand-primary-dark)] font-semibold mb-1">You're invited to join room:</p>
+                <div className="text-2xl font-mono font-bold text-[var(--brand-primary)] tracking-wider">#{invitedRoomId}</div>
               </div>
             ) : (
               <p className="text-xl text-slate-600 mb-8 max-w-2xl mx-auto">
@@ -104,21 +105,21 @@ export const Home: React.FC = () => {
               label="Welcome! What should we call you?"
               value={localName}
               onChange={(e) => setLocalName(e.target.value)}
-              placeholder="e.g., Alex"
+              placeholder="Alex"
               minLength={4}
               error={nameError}
             />
           </div>
 
           {!localName.trim() || localName.trim().length < 4 ? (
-            <p className="text-indigo-900 font-medium animate-pulse">👆 Please enter your nickname to continue!</p>
+            <p className="text-[var(--brand-primary-dark)] font-medium animate-pulse">👆 Please enter your nickname to continue!</p>
           ) : (
             <>
               <div className="space-y-4 mb-8">
                 {invitedRoomId ? (
                    <Button 
                     variant="primary" 
-                    className="w-full text-lg py-5 shadow-indigo-500/20" 
+                    className="w-full text-lg py-5 shadow-[var(--brand-primary)]/20" 
                     onClick={() => handleJoin()}
                     isLoading={isLoading}
                    >
@@ -127,7 +128,7 @@ export const Home: React.FC = () => {
                 ) : (
                   <Button 
                     variant="primary" 
-                    className="w-full text-lg py-4 shadow-pink-500/20" 
+                    className="w-full text-lg py-4 shadow-[var(--brand-accent)]/20" 
                     onClick={() => handleCreate('image')}
                     isLoading={isLoading}
                     disabled={!!nameError}
@@ -147,7 +148,7 @@ export const Home: React.FC = () => {
                 <input 
                   type="text" 
                   placeholder="Room ID" 
-                  className="w-full sm:flex-1 rounded-xl border border-white/40 bg-white/50 px-5 py-3 text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:outline-none transition-all duration-300"
+                  className="w-full sm:flex-1 rounded-xl border border-white/40 bg-white/50 px-5 py-3 text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-[var(--brand-primary)] focus:bg-white focus:outline-none transition-all duration-300"
                   value={roomId}
                   onChange={(e) => setRoomId(e.target.value)}
                   required
